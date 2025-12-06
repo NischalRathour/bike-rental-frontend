@@ -1,0 +1,21 @@
+.nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 30px;
+  background: black;
+  color: white;
+  align-items: center;
+}
+
+.nav-links a {
+  margin-left: 20px;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signup-btn {
+  background: #ff6600;
+  padding: 6px 14px;
+  border-radius: 6px;
+}

@@ -1,0 +1,26 @@
+.hero {
+  display: flex;
+  justify-content: space-between;
+  padding: 40px 60px;
+  background: #f4f4f4;
+  border-radius: 12px;
+  margin: 20px;
+}
+
+.hero-text h1 {
+  font-size: 45px;
+}
+
+.hero-btn {
+  padding: 12px 25px;
+  color: white;
+  background: #ff6600;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.hero-img {
+  width: 420px;
+  border-radius: 10px;
+}
