@@ -1,26 +1,135 @@
+/* General */
+.home {
+  font-family: 'Arial', sans-serif;
+  color: #333;
+}
+
+/* Hero Section */
 .hero {
-  display: flex;
-  justify-content: space-between;
-  padding: 40px 60px;
-  background: #f4f4f4;
-  border-radius: 12px;
-  margin: 20px;
+  position: relative;
+  text-align: center;
+  color: #fff;
 }
 
-.hero-text h1 {
-  font-size: 45px;
+.hero-image {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  filter: brightness(60%);
 }
 
-.hero-btn {
-  padding: 12px 25px;
-  color: white;
-  background: #ff6600;
-  border-radius: 8px;
+.hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hero-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-primary {
+  background-color: #ff6b00;
+  color: #fff;
+  padding: 0.8rem 2rem;
   text-decoration: none;
   font-weight: bold;
+  border-radius: 5px;
+  transition: 0.3s;
 }
 
-.hero-img {
-  width: 420px;
+.btn-primary:hover {
+  background-color: #e55b00;
+}
+
+/* Features Section */
+.features {
+  padding: 4rem 2rem;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+
+.features h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.feature-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.feature-card {
+  background-color: #fff;
+  padding: 2rem;
   border-radius: 10px;
+  width: 250px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.feature-card img {
+  width: 80px;
+  margin-bottom: 1rem;
+}
+
+/* About Section */
+.about {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.about h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.about p {
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin: 0 auto 2rem auto;
+}
+
+.btn-secondary {
+  background-color: #333;
+  color: #fff;
+  padding: 0.8rem 2rem;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feature-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+  }
 }
