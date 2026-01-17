@@ -10,8 +10,7 @@ export default function Home() {
       <section
         className="hero"
         style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1508973378895-7f3d4d1c3cfa)",
+              backgroundImage: "url(/images/moving-bike.jpg)", 
         }}
       >
         <div className="hero-overlay">

@@ -1,3 +1,48 @@
-.nav{display:flex;justify-content:space-between;padding:12px 24px;background:#111;color:#fff;align-items:center}
-.nav .brand a{color:#fff;text-decoration:none;font-weight:700}
-.nav .links a{color:#fff;margin-left:16px;text-decoration:none}
+/* Navbar container */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #111;
+  color: #fff;
+  align-items: center;
+}
+
+/* Brand/Logo */
+.nav .brand a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+/* Links container */
+.nav .links {
+  display: flex;
+  align-items: center;
+}
+
+/* Navbar links */
+.nav .links a {
+  color: #fff;
+  margin-left: 16px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* Logout button styling */
+.btn-logout {
+  background-color: #f44336; /* red */
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-left: 16px; /* spacing from links */
+  transition: background 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: #d32f2f; /* darker red on hover */
+}

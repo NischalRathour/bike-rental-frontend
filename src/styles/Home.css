@@ -207,3 +207,23 @@ footer {
   object-fit: cover;
   border-radius: 8px;
 }
+
+.animated-bike {
+  position: absolute;
+  bottom: 0;         /* aligned to bottom of hero */
+  left: -250px;      /* start off-screen */
+  width: 350px;      /* bigger bike image */
+  height: auto;      /* keep aspect ratio */
+  animation: moveBike 8s linear infinite;
+  z-index: 3;        /* above background but below overlay content if needed */
+}
+
+@keyframes moveBike {
+  0% {
+    left: -350px;    /* start off-screen left */
+  }
+  100% {
+    left: 110%;      /* move past right edge */
+  }
+}
+
