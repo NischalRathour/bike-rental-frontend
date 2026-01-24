@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.6.4",
     "axios": "^1.6.0",
     "lottie-react": "^2.4.1",
     "razorpay": "^2.9.6",
