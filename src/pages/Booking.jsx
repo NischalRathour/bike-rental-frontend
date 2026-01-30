@@ -61,8 +61,9 @@ const Booking = () => {
         }
       );
 
-      alert(`Booking confirmed for ${bike.name}`);
-      navigate("/my-bookings");
+     alert(`Booking confirmed for ${bike.name}`);
+navigate(`/payment/${bike._id}?amount=${totalPrice}`);
+
     } catch (error) {
       console.error(error.response?.data || error);
       alert(error.response?.data?.message || "Booking failed");
