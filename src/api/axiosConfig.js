@@ -5,31 +5,47 @@ const instance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// UPDATED: Correct token names
 instance.interceptors.request.use(
   (config) => {
-    // Check for tokens with correct names
-    const token_user = localStorage.getItem("token_user");    // Customer
-    const token_owner = localStorage.getItem("token_owner");  // Owner  
-    const token_admin = localStorage.getItem("token_admin");  // Admin
-    
-    console.log("🔑 Token check in interceptor:");
-    console.log("  token_user:", token_user ? "✓" : "✗");
-    console.log("  token_owner:", token_owner ? "✓" : "✗");
-    console.log("  token_admin:", token_admin ? "✓" : "✗");
+    const token_user = localStorage.getItem("token_user");     // customer
+    const token_owner = localStorage.getItem("token_owner");   // owner
+    const token_admin = localStorage.getItem("token_admin");   // admin
 
-    // Priority: user (customer) → owner → admin
-    if (token_user) {
+    console.log("🔑 Token check:");
+    console.log("  user:", token_user ? "✓" : "✗");
+    console.log("  owner:", token_owner ? "✓" : "✗");
+    console.log("  admin:", token_admin ? "✓" : "✗");
+
+    const url = config.url || "";
+
+    // 🔴 BOOKINGS → CUSTOMER ONLY
+    if (url.includes("/bookings")) {
+      if (token_user) {
+        config.headers.Authorization = `Bearer ${token_user}`;
+        console.log("  Using token_user (booking)");
+      }
+    }
+
+    // 🟢 OWNER ROUTES
+    else if (url.includes("/bikes/owner") || url.includes("/owner")) {
+      if (token_owner) {
+        config.headers.Authorization = `Bearer ${token_owner}`;
+        console.log("  Using token_owner");
+      }
+    }
+
+    // 🟣 ADMIN ROUTES
+    else if (url.includes("/admin")) {
+      if (token_admin) {
+        config.headers.Authorization = `Bearer ${token_admin}`;
+        console.log("  Using token_admin");
+      }
+    }
+
+    // 🔵 DEFAULT (profile, bikes list, etc.)
+    else if (token_user) {
       config.headers.Authorization = `Bearer ${token_user}`;
-      console.log("  Using: token_user (customer)");
-    } else if (token_owner) {
-      config.headers.Authorization = `Bearer ${token_owner}`;
-      console.log("  Using: token_owner");
-    } else if (token_admin) {
-      config.headers.Authorization = `Bearer ${token_admin}`;
-      console.log("  Using: token_admin");
-    } else {
-      console.log("  No token found");
+      console.log("  Using token_user (default)");
     }
 
     return config;
