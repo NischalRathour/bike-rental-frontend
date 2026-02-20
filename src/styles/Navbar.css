@@ -11,7 +11,7 @@
 /* --- Advanced Glassmorphism Navbar --- */
 .navbar {
   background: var(--nav-bg);
-  backdrop-filter: blur(12px) saturate(180%); /* ✅ Advanced blurring */
+  backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   color: white;
   padding: 0 2rem;
@@ -50,12 +50,13 @@
   background: var(--grad-main);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 8px rgba(0, 219, 222, 0.3)); /* ✅ Logo glow */
+  filter: drop-shadow(0 0 8px rgba(0, 219, 222, 0.3));
 }
 
-/* --- Navigation Links with Animated Underlines --- */
+/* --- Navigation Links --- */
 .navbar-links {
   display: flex;
+  align-items: center;
   gap: 35px;
   margin-left: 40px;
 }
@@ -67,14 +68,17 @@
   font-size: 15px;
   position: relative;
   transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .nav-link:hover {
   color: white;
 }
 
-/* Advanced Animated Underline */
-.nav-link::before {
+/* Advanced Animated Underline for regular links */
+.nav-link:not(.dashboard-highlight)::before {
   content: '';
   position: absolute;
   bottom: -4px;
@@ -86,48 +90,44 @@
   transform: translateX(-50%);
 }
 
-.nav-link:hover::before {
+.nav-link:not(.dashboard-highlight):hover::before {
   width: 100%;
 }
 
-/* --- Auth & User Section --- */
-.btn {
-  padding: 10px 24px;
-  border-radius: 10px;
+/* 🚀 ADVANCED DASHBOARD HIGHLIGHT (The "Admin Panel" Button) */
+.dashboard-highlight {
+  padding: 8px 18px;
+  border-radius: 12px;
+  background: rgba(0, 219, 222, 0.05); /* Very subtle cyan tint */
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan) !important;
   font-weight: 700;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  border: none;
-  cursor: pointer;
-  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 15px rgba(0, 219, 222, 0.1);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.btn-primary {
+.dashboard-highlight:hover {
   background: var(--grad-main);
-  color: white;
-  box-shadow: 0 4px 15px rgba(0, 219, 222, 0.2);
+  color: white !important;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 219, 222, 0.3), 0 0 10px rgba(252, 0, 255, 0.2);
 }
 
-.btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(252, 0, 255, 0.4);
-}
-
-/* --- Advanced User Profile Section --- */
+/* --- Auth & User Section --- */
 .user-section {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 6px 14px;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 50px; /* ✅ Capsule shape */
+  border-radius: 50px;
   border: 1px solid var(--glass-border);
-  transition: all 0.3s ease;
-}
-
-.user-section:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 15px rgba(0, 219, 222, 0.1);
+  position: relative; /* Needed for dropdown positioning */
+  cursor: pointer;
 }
 
 .user-avatar {
@@ -139,61 +139,36 @@
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  color: white;
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* --- Advanced Dropdown (Neumorphic/Glass Mix) --- */
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 15px);
-  right: 0;
-  background: rgba(26, 26, 46, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  min-width: 260px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  transform: translateY(10px);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.name {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-/* Show dropdown on hover/active */
-.user-section:hover .dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.dropdown-item {
-  padding: 14px 20px;
+.logout-button {
+  background: rgba(255, 71, 87, 0.1);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--text-muted);
-  transition: all 0.2s ease;
+  gap: 8px;
+  transition: 0.3s;
 }
 
-.dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--accent-cyan);
-  padding-left: 25px; /* ✅ Slide-in hover effect */
+.logout-button:hover {
+  background: #ff4757;
+  color: white;
 }
 
-.logout-item:hover {
-  color: #ff4757 !important;
-  background: rgba(255, 71, 87, 0.05);
-}
-
-/* --- Responsive Layout --- */
+/* --- Dashboard Logic Sync --- */
 @media (max-width: 900px) {
   .navbar-links { display: none; }
-  
-  .navbar {
-    height: 65px;
-    padding: 0 1rem;
-  }
-
-  .logo-text { font-size: 20px; }
 }

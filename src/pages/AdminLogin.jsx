@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig'; 
-import { useAuth } from '../context/AuthContext'; // ✅ Essential for state sync
+import { useAuth } from '../context/AuthContext'; 
 import { FaLock, FaEnvelope, FaEye, FaEyeSlash, FaBicycle } from 'react-icons/fa';
 import '../styles/AdminLogin.css';
 
 const AdminLogin = () => {
-  const { login, user, loading: authLoading } = useAuth(); // ✅ Pulling login and user state
+  const { login, user, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: 'admin@example.com',
     password: '123456'
@@ -17,22 +17,20 @@ const AdminLogin = () => {
   
   const navigate = useNavigate();
 
-  // 🛡️ Guard: If an admin session is already active, jump straight to dashboard
+  // Guard: If admin is already logged in and tries to access login page, send to home
   useEffect(() => {
     if (!authLoading && user && user.role === 'admin') {
-      navigate('/admin');
+      navigate('/'); 
     }
   }, [user, authLoading, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(''); // Clear error when user types
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic Validation
     if (!formData.email || !formData.password) {
       setError('Please provide both email and password.');
       return;
@@ -42,33 +40,22 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      console.log("🔐 Authenticating Admin...");
+      const response = await api.post('/users/login', formData); // Using shared login route
       
-      const response = await api.post('/admin/login', formData);
-      
-      if (response.data.success) {
-        // ✅ CRITICAL STEP: 
-        // We call the context 'login' which updates the global state.
-        // This ensures 'ProtectedRoute' sees the user immediately.
-        login(response.data.user, response.data.token);
+      if (response.data) {
+        const { token, role, name, email, _id } = response.data;
         
-        console.log("✅ Admin verified. State synchronized.");
+        // Sync with AuthContext
+        login({ id: _id, name, email, role }, token);
         
-        // Use navigate to move to the dashboard within the SPA
-        navigate('/admin'); 
+        // ✅ LOGIC FIX: Send to Home instead of Dashboard
+        navigate('/'); 
       }
     } catch (err) {
-      console.error('❌ Authentication failed:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.message || 'Login failed.');
     } finally {
       setLoading(false);
     }
-  };
-
-  // 🛠 Session Reset (Debug Tool)
-  const resetSession = () => {
-    localStorage.clear();
-    window.location.reload();
   };
 
   return (
@@ -82,71 +69,28 @@ const AdminLogin = () => {
           <p className="subtitle">Administrator Console</p>
         </div>
 
-        {/* Display Errors if any */}
-        {error && (
-          <div className="error-alert">
-            <p>{error}</p>
-          </div>
-        )}
+        {error && <div className="error-alert"><p>{error}</p></div>}
 
         <form onSubmit={handleSubmit} className="login-form">
-          {/* Email Field */}
           <div className="form-group">
-            <label htmlFor="email">
-              <FaEnvelope className="input-icon" /> Admin Email
-            </label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              value={formData.email} 
-              onChange={handleChange} 
-              placeholder="admin@example.com"
-              required 
-            />
+            <label><FaEnvelope /> Admin Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} required />
           </div>
 
-          {/* Password Field */}
           <div className="form-group">
-            <label htmlFor="password">
-              <FaLock className="input-icon" /> Password
-            </label>
+            <label><FaLock /> Password</label>
             <div className="password-input">
-              <input 
-                type={showPassword ? "text" : "password"} 
-                id="password" 
-                name="password" 
-                value={formData.password} 
-                onChange={handleChange} 
-                placeholder="••••••••"
-                required 
-              />
-              <button 
-                type="button" 
-                className="toggle-password" 
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
+              <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="login-button" 
-            disabled={loading}
-          >
-            {loading ? 'Verifying...' : 'Access Dashboard'}
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Verifying...' : 'Access Site'}
           </button>
         </form>
-
-        <div className="login-footer">
-          <button onClick={resetSession} className="debug-button" type="button">
-            Reset Session
-          </button>
-          <p className="help-text">Authorized Personnel Only</p>
-        </div>
       </div>
     </div>
   );

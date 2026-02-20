@@ -27,17 +27,15 @@ import AdminBikes from "./pages/AdminBikes";
 import AdminUsers from "./pages/AdminUsers"; 
 import BookingConfirmation from "./pages/BookingConfirmation";
 
-// Initialize Stripe
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "pk_test_51SoGdhFOkjXvJLGw4VrVT3ZDm33c0xNtmAJNkyKki45CyNhBWswKYAzjBfpbHC7l5KCOmm2WzBjnCqkbmMRxmDFA001J2tI6Qm"
-);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "your_key_here");
 
 export default function App() {
   return (
     <AuthProvider>
       <Router>
         {/* NAVBAR LOGIC: 
-          Navbar renders on all pages EXCEPT those starting with /admin or /admin-login 
+          We use a separate Routes block to hide the main Navbar 
+          when the user is in any admin-related page.
         */}
         <Routes>
           <Route path="/admin/*" element={null} />
@@ -53,8 +51,6 @@ export default function App() {
             <Route path="/bikes/:id" element={<BikeDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
-            {/* 🔐 SPECIAL: Admin Login (Must be outside the /admin shell) */}
             <Route path="/admin-login" element={<AdminLogin />} />
 
             {/* 🔴 PROTECTED CUSTOMER ROUTES */}
@@ -89,6 +85,10 @@ export default function App() {
             } />
             
             {/* 🔴 NESTED ADMIN ROUTES (THE SHELL) */}
+            {/* The AdminLayout acts as the Parent. 
+               It contains the Sidebar. All child routes 
+               render inside the Outlet of AdminLayout.
+            */}
             <Route 
               path="/admin" 
               element={
@@ -97,13 +97,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              {/* index = /admin */}
               <Route index element={<AdminDashboard />} /> 
-              
-              {/* /admin/bikes */}
               <Route path="bikes" element={<AdminBikes />} /> 
-              
-              {/* /admin/users */}
               <Route path="users" element={<AdminUsers />} /> 
             </Route>
 
