@@ -21,14 +21,22 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // 1. Authenticate with your Kathmandu backend (Port 5000)
       const res = await api.post("/users/login", input); 
       const { token, role, name, email, _id } = res.data;
 
-      // Use Context Login
+      // 2. Save session in AuthContext & LocalStorage
       login({ id: _id, name, email, role }, token);
 
-      if (role === "admin") navigate("/admin/dashboard");
-      else navigate("/customer/dashboard");
+      // 3. ✅ NAVIGATION FIX: 
+      // We must navigate to the exact paths defined in your App.js Routes.
+      if (role === "admin") {
+        // App.js defines: path="/admin"
+        navigate("/admin"); 
+      } else {
+        // App.js defines: path="/customer"
+        navigate("/customer"); 
+      }
 
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
@@ -40,15 +48,47 @@ const Login = () => {
   return (
     <div className="auth-container">
       <form className="auth-box" onSubmit={handleSubmit}>
-        <h2>Login</h2>
+        <div className="auth-header">
+          <h2>Welcome Back</h2>
+          <p>Login to your Ride N Roar account</p>
+        </div>
+
         {error && <div className="auth-error-box">{error}</div>}
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-        <button type="submit" disabled={loading}>{loading ? "Verifying..." : "Login"}</button>
-        <Link to="/register">Register here</Link>
+
+        <div className="input-group">
+          <label>Email Address</label>
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="example@mail.com" 
+            value={input.email}
+            onChange={handleChange} 
+            required 
+          />
+        </div>
+
+        <div className="input-group">
+          <label>Password</label>
+          <input 
+            type="password" 
+            name="password" 
+            placeholder="••••••••" 
+            value={input.password}
+            onChange={handleChange} 
+            required 
+          />
+        </div>
+
+        <button type="submit" className="btn-auth" disabled={loading}>
+          {loading ? "Verifying Session..." : "Login"}
+        </button>
+
+        <div className="auth-footer">
+          <p>Don't have an account? <Link to="/register">Register here</Link></p>
+        </div>
       </form>
     </div>
   );
 };
 
-export default Login; // Ensure this is a default export
+export default Login;

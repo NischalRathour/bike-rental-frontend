@@ -11,35 +11,35 @@ export const AuthProvider = ({ children }) => {
     const adminToken = localStorage.getItem('token_admin');
     const userToken = localStorage.getItem('token_user');
 
-    // Optimistic Hydration: prevent UI flicker by loading from storage immediately
-    const savedAdmin = localStorage.getItem('adminUser');
+    // Load from storage immediately to prevent UI flicker
     const savedUser = localStorage.getItem('userInfo');
-    if (adminToken && savedAdmin) setUser(JSON.parse(savedAdmin));
-    else if (userToken && savedUser) setUser(JSON.parse(savedUser));
+    if (savedUser) setUser(JSON.parse(savedUser));
 
     if (adminToken || userToken) {
       try {
-        // Direct admins to dashboard and customers to profile
+        // ✅ PATH FIX: Hits the route you defined: router.get("/me", protect, getMe)
+        // mounted at /api/users, so axios calls /users/me
         const endpoint = adminToken ? '/admin/dashboard' : '/users/me';
         const res = await api.get(endpoint);
+        
         if (res.data.success) {
           setUser(res.data.user); // Sync fresh data from MongoDB
         }
       } catch (err) {
+        console.error("Auth sync failed:", err);
         if (err.response?.status === 401) logout();
       }
     }
-    // ✅ CRITICAL: loading must finish AFTER the sync attempt is done
-    setLoading(false); 
+    setLoading(false); // ✅ CRITICAL: This allows the ProtectedRoute to render the dashboard
   };
 
   useEffect(() => { checkUser(); }, []);
 
   const login = (userData, token) => {
     setUser(userData);
-    const isAdmin = userData.role === 'admin';
-    localStorage.setItem(isAdmin ? 'token_admin' : 'token_user', token);
-    localStorage.setItem(isAdmin ? 'adminUser' : 'userInfo', JSON.stringify(userData));
+    const key = userData.role === 'admin' ? 'token_admin' : 'token_user';
+    localStorage.setItem(key, token);
+    localStorage.setItem('userInfo', JSON.stringify(userData));
   };
 
   const logout = () => {

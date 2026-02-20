@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import paymentApi from '../api/paymentApi'; // Import clean API
+import api from '../api/axiosConfig'; // Using your standard interceptor-enabled API
 
 function Payment({ amount, onSuccess, bookingId }) {
   const stripe = useStripe();
@@ -8,47 +8,51 @@ function Payment({ amount, onSuccess, bookingId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [debugInfo, setDebugInfo] = useState([]);
+  const [debugLog, setDebugLog] = useState([]);
 
-  const addDebug = (message) => {
-    console.log(message);
-    setDebugInfo(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  // Helper to track process for supervisor demo
+  const addLog = (msg) => {
+    console.log(msg);
+    setDebugLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    addDebug('=== PAYMENT PROCESS START ===');
-    addDebug(`Stripe loaded: ${!!stripe}`);
-    addDebug(`Elements loaded: ${!!elements}`);
-    addDebug(`Amount: ₹${amount}`);
-    
+    setError(null);
+    setDebugLog([]); // Reset log for new attempt
+
+    addLog('🚀 Starting Payment Process...');
+
     if (!stripe || !elements) {
-      addDebug('❌ Stripe.js not loaded yet');
-      setError("Payment system is not ready. Please wait...");
+      addLog('❌ Error: Stripe.js not ready');
+      setError("Payment system is still initializing. Please wait.");
+      return;
+    }
+
+    // ✅ VALIDATION: Ensure amount is valid before calling Port 5000
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      addLog(`❌ Validation Failed: Amount is ${amount}`);
+      setError("Invalid payment amount. Please check your rental details.");
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      // METHOD 1: Try with clean payment API
-      addDebug('🔄 Step 1: Creating payment intent...');
-      
-      const { data } = await paymentApi.post('/payments/create-payment-intent', {
-        amount: amount
+      // STEP 1: Get Payment Intent from Backend
+      addLog(`📡 Requesting Intent for Rs. ${numericAmount}...`);
+      const { data } = await api.post('/payments/create-payment-intent', {
+        amount: numericAmount
       });
-      
-      addDebug('✅ Step 1: Payment intent created');
-      addDebug(`Client Secret: ${data.clientSecret.substring(0, 30)}...`);
-      
-      if (!data.clientSecret) {
-        throw new Error('No client secret received from backend');
-      }
 
-      // METHOD 2: Process with Stripe
-      addDebug('🔄 Step 2: Processing with Stripe.js...');
+      if (!data.clientSecret) {
+        throw new Error('Server did not return a client secret.');
+      }
+      addLog('✅ Intent Received.');
+
+      // STEP 2: Confirm Payment with Stripe
+      addLog('💳 Verifying Card with Stripe...');
       const cardElement = elements.getElement(CardElement);
       
       const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
@@ -57,136 +61,74 @@ function Payment({ amount, onSuccess, bookingId }) {
           payment_method: {
             card: cardElement,
             billing_details: {
-              name: "Test Customer",
+              name: "Ride N Roar Customer",
             },
           },
         }
       );
 
       if (stripeError) {
-        addDebug(`❌ Stripe Error: ${stripeError.message}`);
-        setError(`Payment failed: ${stripeError.message}`);
+        addLog(`❌ Stripe Error: ${stripeError.message}`);
+        setError(stripeError.message);
         setLoading(false);
         return;
       }
 
-      addDebug(`✅ Step 3: Payment successful! ID: ${paymentIntent.id}`);
-      setSuccess(true);
-      
-      // Update booking
-      if (bookingId && onSuccess) {
-        addDebug('🔄 Step 4: Updating booking status...');
-        await onSuccess(paymentIntent.id);
-        addDebug('✅ Step 4: Booking updated');
+      if (paymentIntent.status === 'succeeded') {
+        addLog('🎉 Payment Success!');
+        setSuccess(true);
+        
+        // STEP 3: Finalize Booking on Backend
+        if (bookingId && onSuccess) {
+          addLog('🔄 Syncing Booking Status...');
+          await onSuccess(paymentIntent.id);
+          addLog('✅ Booking Confirmed.');
+        }
       }
 
     } catch (err) {
-      console.error('Full error:', err);
-      
-      let errorMessage = 'Payment failed';
-      
-      if (err.response) {
-        // Server responded with error
-        addDebug(`❌ Server Error: ${err.response.status}`);
-        addDebug(`Error Data: ${JSON.stringify(err.response.data)}`);
-        errorMessage = err.response.data?.error || 
-                      err.response.data?.message || 
-                      `Server Error (${err.response.status})`;
-      } else if (err.request) {
-        // Request made but no response
-        addDebug('❌ No response from server');
-        errorMessage = 'Cannot connect to payment server. Please check your internet connection.';
-      } else {
-        // Other errors
-        addDebug(`❌ Error: ${err.message}`);
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+      console.error('Payment Error:', err);
+      const msg = err.response?.data?.message || err.message || "Payment processing failed";
+      addLog(`❌ Error: ${msg}`);
+      setError(msg);
     } finally {
       setLoading(false);
-      addDebug('=== PAYMENT PROCESS END ===');
-    }
-  };
-
-  // Test button for debugging
-  const testBackend = async () => {
-    try {
-      addDebug('🧪 Testing backend connection...');
-      const response = await fetch('http://localhost:5000/api/payments/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 100 })
-      });
-      
-      const data = await response.json();
-      addDebug(`✅ Backend test: ${response.status} ${response.statusText}`);
-      addDebug(`Response: ${JSON.stringify(data)}`);
-      
-    } catch (error) {
-      addDebug(`❌ Backend test failed: ${error.message}`);
+      addLog('=== END OF PROCESS ===');
     }
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      <h2>Pay ₹{amount}</h2>
-      
-      {/* Test Button */}
-      <button 
-        onClick={testBackend}
-        style={{
-          marginBottom: '20px',
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}
-      >
-        🧪 Test Backend Connection
-      </button>
+    <div className="payment-form-wrapper">
+      <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>Enter Card Details</h3>
       
       {success ? (
-        <div style={{ color: 'green', padding: '20px', textAlign: 'center' }}>
-          <h3>✅ Payment Successful!</h3>
-          <p>Your payment has been processed successfully.</p>
+        <div style={{ textAlign: 'center', padding: '20px', background: '#dcfce7', borderRadius: '12px' }}>
+          <h4 style={{ color: '#15803d', margin: 0 }}>✅ Payment Successful</h4>
+          <p style={{ fontSize: '0.9rem', color: '#166534' }}>Redirecting to confirmation...</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           <div style={{ 
-            border: '1px solid #ccc', 
             padding: '15px', 
-            borderRadius: '5px',
+            border: '1px solid #e2e8f0', 
+            borderRadius: '10px', 
+            background: '#fff',
             marginBottom: '20px'
           }}>
-            <label>Card Details</label>
-            <CardElement 
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: '#424770',
-                    '::placeholder': {
-                      color: '#aab7c4',
-                    },
-                  },
-                },
-              }}
-            />
+            <CardElement options={{ style: { base: { fontSize: '16px', color: '#1e293b' } } }} />
           </div>
 
           {error && (
             <div style={{ 
-              color: 'red', 
-              padding: '15px', 
+              background: '#fef2f2', 
+              color: '#b91c1c', 
+              padding: '12px', 
+              borderRadius: '8px', 
+              fontSize: '0.9rem',
               marginBottom: '20px',
-              background: '#ffebee',
-              borderRadius: '5px',
-              border: '1px solid #ffcdd2'
+              border: '1px solid #fee2e2'
             }}>
-              <strong>❌ Error:</strong> {error}
+              <strong>⚠️ Payment Failed:</strong> {error}
             </div>
           )}
 
@@ -194,53 +136,35 @@ function Payment({ amount, onSuccess, bookingId }) {
             type="submit" 
             disabled={!stripe || loading}
             style={{
-              background: loading ? '#ccc' : '#0066cc',
-              color: 'white',
-              padding: '12px 24px',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '16px',
               width: '100%',
-              marginBottom: '20px'
+              padding: '14px',
+              background: loading ? '#94a3b8' : '#1e293b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '1rem'
             }}
           >
-            {loading ? 'Processing...' : `Pay ₹${amount}`}
+            {loading ? 'Validating...' : `Pay Rs. ${amount?.toLocaleString()}`}
           </button>
 
-          {/* Debug Info */}
-          <div style={{ 
-            marginTop: '30px',
-            padding: '15px', 
-            background: '#f5f5f5', 
-            borderRadius: '5px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-            maxHeight: '200px',
-            overflowY: 'auto'
-          }}>
-            <strong>🛠️ Debug Log:</strong>
-            {debugInfo.map((log, index) => (
-              <div key={index} style={{ 
-                padding: '3px 0',
-                borderBottom: '1px solid #ddd'
-              }}>
-                {log}
-              </div>
-            ))}
-          </div>
-
-          {/* Test Card Info */}
-          <div style={{ 
-            marginTop: '20px', 
-            padding: '15px', 
-            background: '#e8f5e9', 
-            borderRadius: '5px' 
-          }}>
-            <p><strong>💡 Test Card:</strong></p>
-            <p><code>4242 4242 4242 4242</code></p>
-            <p>Expiry: 12/34 | CVC: 123 | Name: Any name</p>
-          </div>
+          {/* Collapsible Debug Log for Supervisor Presentation */}
+          <details style={{ marginTop: '20px', fontSize: '0.8rem', color: '#64748b' }}>
+            <summary style={{ cursor: 'pointer' }}>🛠️ Developer Debug Log</summary>
+            <div style={{ 
+              marginTop: '10px', 
+              padding: '10px', 
+              background: '#f1f5f9', 
+              borderRadius: '6px',
+              maxHeight: '150px',
+              overflowY: 'auto',
+              fontFamily: 'monospace'
+            }}>
+              {debugLog.length === 0 ? "No active logs." : debugLog.map((log, i) => <div key={i}>{log}</div>)}
+            </div>
+          </details>
         </form>
       )}
     </div>
