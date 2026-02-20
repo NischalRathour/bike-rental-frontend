@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // ✅ Use global Auth
 import api from "../api/axiosConfig";
 
 const Booking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth(); // ✅ Get user from context
 
   const [bike, setBike] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ const Booking = () => {
         const res = await api.get(`/bikes/${id}`);
         setBike(res.data);
       } catch (err) {
-        alert("Failed to load bike");
+        setError("Failed to load bike details.");
       } finally {
         setLoading(false);
       }
@@ -33,25 +35,9 @@ const Booking = () => {
       return;
     }
 
-    // ✅ CORRECT token - axios expects token_user for customer
-    const token = localStorage.getItem("token_user");
-    
-    if (!token) {
-      alert("Please login as customer\n\nToken should be saved as 'token_user'");
+    if (!user || user.role !== 'customer') {
+      alert("Only customers can make bookings. Please login as a customer.");
       return;
-    }
-
-    // Quick token check
-    try {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      console.log("Token role:", decoded.role);
-      
-      if (decoded.role !== 'customer') {
-        alert(`Wrong account type!\n\nYou are: ${decoded.role}\nNeed: customer\n\nPlease login as customer.`);
-        return;
-      }
-    } catch (e) {
-      console.error("Invalid token:", e);
     }
 
     setBookingLoading(true);
@@ -63,7 +49,8 @@ const Booking = () => {
       endDate.setDate(startDate.getDate() + Number(days));
       const totalPrice = bike.price * days;
 
-      console.log("Booking request:", {
+      // ✅ Dates as ISO strings for Mongoose compatibility
+      const res = await api.post("/bookings", {
         bike: bike._id,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
@@ -71,152 +58,93 @@ const Booking = () => {
         days: Number(days)
       });
 
-      // ✅ FIXED: Dates as ISO strings, include days field
-      await api.post("/bookings", {
-        bike: bike._id,
-        startDate: startDate.toISOString(),  // ✅ Convert to ISO string
-        endDate: endDate.toISOString(),      // ✅ Convert to ISO string
-        totalPrice,
-        days: Number(days)                    // ✅ Add days field
-      });
-
-      alert(`✅ Booking successful!\n\nTotal: Rs. ${totalPrice}`);
-      navigate(`/payment/${bike._id}?amount=${totalPrice}`);
+      // Pass state to the next page for the advanced confirmation view
+      const bookingId = res.data._id || res.data.booking?._id;
+      
+      alert(`✅ Booking successful!\nTotal: Rs. ${totalPrice}`);
+      
+      // Navigate to payment with the specific booking ID
+      navigate(`/payment/${bookingId}`);
       
     } catch (err) {
       console.error("Booking error:", err.response?.data || err);
-      
-      if (err.response?.status === 403) {
-        setError("Access denied. Make sure you're logged in as customer.");
-        alert("ACCESS DENIED!\n\nYou need to be logged in as CUSTOMER.\n\nCheck that:\n1. Token is saved as 'token_user'\n2. Your role is 'customer' in the token");
-      } else if (err.response?.status === 400) {
-        setError(err.response.data?.message || "Invalid data");
-        alert(`Invalid data: ${err.response.data?.message}`);
-      } else {
-        setError(err.response?.data?.message || "Booking failed");
-        alert(err.response?.data?.message || "Booking failed. Please try again.");
-      }
+      const msg = err.response?.data?.message || "Booking failed. Please try again.";
+      setError(msg);
+      alert(msg);
     } finally {
       setBookingLoading(false);
     }
   };
 
-  // Login helper
-  const loginAsCustomer = async () => {
-    try {
-      // Clear old tokens
-      localStorage.removeItem("token_user");
-      localStorage.removeItem("token_owner");
-      
-      const response = await api.post("/users/login", {
-        email: "test123@gmail.com",
-        password: "123456"
-      });
-      
-      // ✅ Save as token_user (what axios expects)
-      localStorage.setItem("token_user", response.data.token);
-      
-      alert("✅ Logged in as customer!");
-      window.location.reload();
-      
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Login failed. Please check credentials.");
-    }
-  };
-
-  // Clear tokens
-  const clearTokens = () => {
-    localStorage.removeItem("token_user");
-    localStorage.removeItem("token_owner");
-    alert("Tokens cleared. Please login again.");
-    window.location.reload();
-  };
-
-  if (loading) return <p style={{ padding: "20px" }}>Loading bike details...</p>;
-  if (!bike) return <p style={{ padding: "20px" }}>Bike not found</p>;
+  if (loading || authLoading) return <p style={{ padding: "50px", textAlign: "center" }}>Loading details...</p>;
+  if (!bike) return <p style={{ padding: "50px", textAlign: "center" }}>Bike not found</p>;
 
   return (
-    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-      <h1>Book {bike.name}</h1>
+    <div style={{ maxWidth: "500px", margin: "40px auto", padding: "20px", boxShadow: "0 0 10px rgba(0,0,0,0.1)", borderRadius: "10px" }}>
+      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Confirm Booking</h1>
       
-      {/* Debug info */}
-      <div style={{ padding: "10px", background: "#f5f5f5", marginBottom: "15px", borderRadius: "5px" }}>
-        <p style={{ margin: "0 0 10px 0" }}><strong>Token Status:</strong> {localStorage.getItem("token_user") ? "✅ Found" : "❌ Missing"}</p>
-        <button 
-          onClick={loginAsCustomer} 
-          style={{ padding: "8px 12px", marginRight: "10px", background: "#28a745", color: "white", border: "none", borderRadius: "4px" }}
-        >
-          Login as Customer
-        </button>
-        <button 
-          onClick={clearTokens}
-          style={{ padding: "8px 12px", background: "#dc3545", color: "white", border: "none", borderRadius: "4px" }}
-        >
-          Clear Tokens
-        </button>
-      </div>
-
-      {error && (
-        <div style={{ padding: "10px", background: "#f8d7da", color: "#721c24", marginBottom: "15px", borderRadius: "5px" }}>
-          {error}
-        </div>
-      )}
-
       <img
-        src={bike.images?.[0] || "/images/default-bike.jpg"}
+        src={bike.image || "/images/default-bike.jpg"}
         alt={bike.name}
-        style={{ width: "100%", borderRadius: "8px", marginBottom: "15px" }}
+        style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: "8px", marginBottom: "15px" }}
       />
 
-      <p><strong>Price:</strong> Rs. {bike.price} / day</p>
-      <p style={{ marginBottom: "20px" }}>{bike.description}</p>
+      <div style={{ marginBottom: "20px" }}>
+        <h2 style={{ margin: "0 0 10px 0" }}>{bike.name}</h2>
+        <p style={{ color: "#666" }}>{bike.description}</p>
+        <p><strong>Rate:</strong> Rs. {bike.price} / day</p>
+      </div>
 
       <div style={{ marginBottom: "15px" }}>
-        <label style={{ display: "block", marginBottom: "5px" }}>Start Date:</label>
+        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Pickup Date:</label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          style={{ width: "100%", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }}
+          style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "6px" }}
           min={new Date().toISOString().split('T')[0]}
         />
       </div>
 
       <div style={{ marginBottom: "15px" }}>
-        <label style={{ display: "block", marginBottom: "5px" }}>Number of Days:</label>
+        <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Duration (Days):</label>
         <input
           type="number"
           min="1"
           max="30"
           value={days}
           onChange={(e) => setDays(e.target.value)}
-          style={{ width: "100%", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }}
+          style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "6px" }}
         />
       </div>
 
-      <div style={{ padding: "15px", background: "#e8f5e8", borderRadius: "5px", marginBottom: "20px" }}>
-        <p style={{ margin: 0, fontSize: "18px" }}><strong>Total Price:</strong> Rs. {bike.price * days}</p>
-        <p style={{ margin: "5px 0 0 0", fontSize: "14px", color: "#666" }}>
-          {days} day{days > 1 ? 's' : ''} × Rs. {bike.price}/day
+      <div style={{ padding: "15px", background: "#f0f9ff", borderLeft: "5px solid #007bff", borderRadius: "5px", marginBottom: "20px" }}>
+        <p style={{ margin: 0, fontSize: "20px", fontWeight: "bold", color: "#007bff" }}>
+          Total Price: Rs. {bike.price * days}
+        </p>
+        <p style={{ margin: "5px 0 0 0", fontSize: "14px", color: "#555" }}>
+          {days} {days > 1 ? 'days' : 'day'} at Rs. {bike.price}/day
         </p>
       </div>
+
+      {error && <p style={{ color: "#dc3545", textAlign: "center", marginBottom: "10px" }}>{error}</p>}
 
       <button
         onClick={handleBooking}
         disabled={bookingLoading || !date}
         style={{
           width: "100%",
-          padding: "12px",
-          background: bookingLoading ? "#6c757d" : (!date ? "#adb5bd" : "#007BFF"),
+          padding: "15px",
+          background: bookingLoading ? "#ccc" : "#007bff",
           color: "white",
           border: "none",
-          borderRadius: "5px",
-          fontSize: "16px",
+          borderRadius: "8px",
+          fontSize: "18px",
+          fontWeight: "bold",
           cursor: bookingLoading || !date ? "not-allowed" : "pointer"
         }}
       >
-        {bookingLoading ? "Processing..." : (!date ? "Select Date First" : "Confirm Booking")}
+        {bookingLoading ? "Processing..." : "Confirm & Proceed to Payment"}
       </button>
     </div>
   );

@@ -1,158 +1,143 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { MapPin, Calendar, Shield, Zap, Star, CheckCircle } from "lucide-react";
 import "../styles/Home.css";
+
+// Animation Variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.6 }
+};
 
 export default function Home() {
   return (
-    <div className="home">
-
-      {/* HERO SECTION */}
-      <section
-        className="hero"
-        style={{
-              backgroundImage: "url(/images/moving-bike.jpg)", 
-        }}
-      >
-        <div className="hero-overlay">
-          <div className="hero-content">
-            <h1>Rent a Bike Anywhere in Nepal</h1>
-            <p>
-              Affordable, eco-friendly, and easy bike rentals for daily travel,
-              tours, and adventures.
-            </p>
-            <div className="hero-buttons">
-              <Link to="/register" className="btn">
-                Get Started
-              </Link>
-              <Link to="/bikes" className="btn btn-secondary">
-                Browse Bikes
-              </Link>
+    <div className="home-wrapper">
+      
+      {/* 🚀 HERO SECTION */}
+      <section className="hero-v2">
+        <div className="hero-image-container">
+          <img src="/images/moving-bike.jpg" alt="Ride Nepal" className="hero-img" />
+          <div className="overlay-gradient"></div>
+        </div>
+        
+        <div className="hero-content">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="badge">#1 Rental Service in Nepal</span>
+            <h1>Unleash Your <br /><span>Mountain Adventure</span></h1>
+            <p>Premium bikes for the streets of Kathmandu and the trails of the Himalayas. Fast booking, zero hassle.</p>
+            <div className="hero-actions">
+              <Link to="/bikes" className="btn-primary-v2">Browse Fleet</Link>
+              <Link to="/register" className="btn-secondary-v2">Sign Up Now</Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="how-it-works">
-        <h2>How It Works</h2>
-        <div className="steps">
-          <div className="step">
-            <h3>1. Choose a Bike</h3>
-            <p>Select from scooters, mountain bikes, or electric bikes.</p>
-          </div>
-          <div className="step">
-            <h3>2. Book Online</h3>
-            <p>Pick your date, time, and location in seconds.</p>
-          </div>
-          <div className="step">
-            <h3>3. Ride & Return</h3>
-            <p>Enjoy your ride and return it hassle-free.</p>
-          </div>
-        </div>
-      </section>
+      {/* 🛠 HOW IT WORKS */}
+      <section className="steps-section">
+        <motion.div {...fadeInUp} className="section-header">
+          <h2>How It Works</h2>
+          <p>Get on the road in minutes</p>
+        </motion.div>
 
-      {/* POPULAR BIKES */}
-      <section className="popular-bikes">
-  <h2>Popular Bikes</h2>
-
-  <div className="bike-grid">
-    <div className="bike-card">
-      <img src="/images/mountain.jpg" alt="Mountain Bike" />
-      <h3>Mountain Bike</h3>
-      <p>Perfect for trails and rough terrain.</p>
-    </div>
-
-    <div className="bike-card">
-      <img src="/images/scooter.jpg" alt="Scooter" />
-      <h3>Scooter</h3>
-      <p>Easy city commuting at low cost.</p>
-    </div>
-
-    <div className="bike-card">
-      <img src="/images/electric.jpg" alt="Electric Bike" />
-      <h3>Electric Bike</h3>
-      <p>Eco-friendly and effortless riding.</p>
-    </div>
-  </div>
-
-  <Link to="/bikes" className="btn">View All Bikes</Link>
-</section>
-
-      {/* WHY CHOOSE US */}
-      <section className="why-us">
-        <h2>Why Choose Ride N Roar?</h2>
-        <div className="reasons">
-          <div className="reason">
-            <h3>Affordable Pricing</h3>
-            <p>No hidden charges, pay only for what you ride.</p>
-          </div>
-          <div className="reason">
-            <h3>Eco-Friendly</h3>
-            <p>Reduce pollution and carbon footprint.</p>
-          </div>
-          <div className="reason">
-            <h3>Secure & Reliable</h3>
-            <p>Verified users, insured bikes, safe payments.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="testimonials">
-        <h2>What Our Riders Say</h2>
-        <div className="testimonial-cards">
-          <div className="testimonial">
-            <p>
-              “Very easy booking and well-maintained bikes. Perfect for city
-              travel!”
-            </p>
-            <h4>- Suman, Kathmandu</h4>
-          </div>
-          <div className="testimonial">
-            <p>
-              “Affordable and eco-friendly. Best bike rental service in Nepal.”
-            </p>
-            <h4>- Anjali, Pokhara</h4>
-          </div>
-        </div>
-      </section>
-
-      {/* CALL TO ACTION */}
-      <section className="cta-footer">
-        <h2>Ready to Ride?</h2>
-        <p>Create an account and start your journey today.</p>
-        <Link to="/register" className="btn">
-          Register Now
-        </Link>
-
-        <footer>
-          <p>© 2025 Ride N Roar. All rights reserved.</p>
-          <div className="socials">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
+        <div className="steps-grid">
+          {[
+            { icon: <Zap />, title: "Pick Your Ride", desc: "Select from scooters, electrics, or heavy MTBs." },
+            { icon: <Calendar />, title: "Select Dates", desc: "Choose your pickup and return timeline." },
+            { icon: <MapPin />, title: "Roar Away", desc: "Pick up your keys and explore the beauty of Nepal." }
+          ].map((step, i) => (
+            <motion.div 
+              key={i}
+              {...fadeInUp}
+              transition={{ delay: i * 0.2 }}
+              className="step-card-v2"
             >
-              Facebook
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
+              <div className="icon-box">{step.icon}</div>
+              <h3>{step.title}</h3>
+              <p>{step.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* 🏍 FEATURED BIKES */}
+      <section className="featured-section">
+        <div className="flex-header">
+          <h2>Featured Fleet</h2>
+          <Link to="/bikes" className="link-text">See All Bikes →</Link>
+        </div>
+
+        <div className="bike-grid-v2">
+          {[
+            { id: 1, name: "Himalayan MTB", price: "800", img: "/images/mountain.jpg" },
+            { id: 2, name: "City Scooter", price: "1200", img: "/images/scooter.jpg" },
+            { id: 3, name: "Eco Electric", price: "1000", img: "/images/electric.jpg" }
+          ].map((bike) => (
+            <motion.div 
+              key={bike.id}
+              whileHover={{ y: -10 }}
+              className="bike-card-modern"
             >
-              Instagram
-            </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Twitter
-            </a>
-          </div>
+              <div className="img-wrapper">
+                <img src={bike.img} alt={bike.name} />
+              </div>
+              <div className="card-body">
+                <h3>{bike.name}</h3>
+                <p>Available in Kathmandu</p>
+                <div className="card-footer-v2">
+                  <span className="price-tag">Rs. {bike.price}<span>/day</span></span>
+                  <Link to={`/bikes`} className="btn-sm">View</Link>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* 🛡 WHY US */}
+      <section className="trust-section">
+        <div className="trust-grid">
+          <motion.div {...fadeInUp} className="trust-img">
+            <img src="/images/moving-bike.jpg" alt="Security" />
+          </motion.div>
+          <motion.div {...fadeInUp} className="trust-content">
+            <h2>Why Ride N Roar?</h2>
+            <div className="benefit">
+              <Shield className="b-icon" />
+              <div>
+                <h4>Fully Insured</h4>
+                <p>Every ride is protected so you can focus on the view.</p>
+              </div>
+            </div>
+            <div className="benefit">
+              <CheckCircle className="b-icon" />
+              <div>
+                <h4>Verified Condition</h4>
+                <p>Bikes are sanitized and serviced after every single rental.</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 🏁 FINAL CTA */}
+      <section className="footer-cta">
+        <div className="cta-content">
+          <h2>Ready to hit the road?</h2>
+          <p>Join thousands of riders exploring Nepal daily.</p>
+          <Link to="/register" className="btn-white">Create Account</Link>
+        </div>
+        <footer className="simple-footer">
+          <p>© 2026 Ride N Roar Nepal. All rights reserved.</p>
         </footer>
       </section>
-
     </div>
   );
 }

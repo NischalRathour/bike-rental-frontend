@@ -1,210 +1,127 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axiosConfig'; // ✅ Using your interceptor-enabled API
 import Payment from '../components/Payment';
 
 function PaymentPage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [token, setToken] = useState('');
 
   useEffect(() => {
-    const getToken = () => {
-      // Try all possible token names
-      return localStorage.getItem('customerToken') || 
-             localStorage.getItem('token_user') ||
-             localStorage.getItem('token');
-    };
-
-    const fetchBooking = async () => {
-      console.log('=== PAYMENT PAGE LOADING ===');
-      console.log('Booking ID from URL:', bookingId);
-      
-      const userToken = getToken();
-      setToken(userToken || '');
-      
-      console.log('Token found:', userToken ? 'Yes' : 'No');
-      
-      if (!userToken) {
-        setError('Please login to continue');
-        setLoading(false);
-        return;
-      }
-
-      // If no booking ID or test mode
-      if (!bookingId || bookingId === 'test' || bookingId === 'undefined') {
-        console.log('⚠️ Using test mode - no booking ID');
-        setBooking({
-          _id: 'test_booking',
-          bike: { name: 'Test Bike', pricePerHour: 100 },
-          totalHours: 8,
-          totalAmount: 800,
-          status: 'pending'
-        });
-        setLoading(false);
-        return;
-      }
-
+    const fetchBookingDetails = async () => {
       try {
-        console.log(`🔄 Fetching booking ${bookingId}...`);
-        
-        // NOW using the correct endpoint: /api/bookings/:id
-        const response = await axios.get(`http://localhost:5000/api/bookings/${bookingId}`, {
-          headers: {
-            'Authorization': `Bearer ${userToken}`
-          }
-        });
-
-        console.log('✅ Booking data received:', response.data);
+        console.log(`🔄 Fetching details for booking: ${bookingId}`);
+        const response = await api.get(`/bookings/${bookingId}`);
         setBooking(response.data);
-
       } catch (err) {
-        console.error('❌ Error:', err.response?.data || err.message);
-        
-        if (err.response) {
-          console.log('Status:', err.response.status);
-          
-          if (err.response.status === 404) {
-            setError(`Booking ${bookingId} not found. It may have been cancelled.`);
-          } else if (err.response.status === 401) {
-            setError('Please login again.');
-          } else if (err.response.status === 403) {
-            setError('You do not have permission to view this booking.');
-          } else {
-            setError(`Server error: ${err.response.status}`);
-          }
-        } else {
-          setError('Cannot connect to server. Check if backend is running.');
-        }
-        
-        // Fallback for testing
-        console.log('⚠️ Using fallback booking data');
-        setBooking({
-          _id: bookingId,
-          bike: { name: 'Test Bike', pricePerHour: 100 },
-          totalHours: 8,
-          totalAmount: 800,
-          status: 'pending'
-        });
+        console.error('❌ Error fetching booking:', err.response?.data || err.message);
+        setError('We couldn’t retrieve your booking details. Please refresh.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBooking();
+    if (bookingId && bookingId !== 'test') {
+      fetchBookingDetails();
+    } else {
+      // Logic for test/mock mode if needed
+      setLoading(false);
+    }
   }, [bookingId]);
 
   const handlePaymentSuccess = async (paymentId) => {
-    console.log('✅ Payment successful, paymentId:', paymentId);
+    console.log('✅ Stripe Payment Success. Updating backend...');
     
-    // Update booking status if it's a real booking
-    if (bookingId && bookingId !== 'test' && token) {
-      try {
-        // Use the new endpoint: /api/bookings/:id/pay
-        await axios.put(`http://localhost:5000/api/bookings/${bookingId}/pay`, {
-          paymentId: paymentId,
-          amount: booking?.totalAmount || booking?.totalPrice || 800
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        console.log('✅ Booking updated with payment');
-      } catch (err) {
-        console.error('❌ Failed to update booking:', err.message);
-        // Don't show error to user - payment was successful
-      }
+    try {
+      const finalAmount = booking?.totalPrice || booking?.totalAmount;
+
+      // 1. Update the booking status in MongoDB to 'Confirmed' and 'Paid'
+      await api.put(`/bookings/${bookingId}/pay`, {
+        paymentId: paymentId,
+        amount: finalAmount
+      });
+
+      // 2. ✅ NAVIGATE TO SUCCESS PAGE WITH DATA
+      // Passing state is crucial so the Confirmation page knows what to show
+      navigate('/booking-success', {
+        state: {
+          bookingId: bookingId,
+          bikeName: booking?.bike?.name || "Premium Bike",
+          bikeImage: booking?.bike?.image || booking?.bike?.images?.[0],
+          startDate: booking?.startDate,
+          endDate: booking?.endDate,
+          totalPrice: finalAmount
+        }
+      });
+
+    } catch (err) {
+      console.error('❌ Backend update failed:', err.message);
+      // If the payment worked but the update failed, we still show the success page
+      // but warn the user or redirect to my-bookings
+      alert("Payment verified! Redirecting to your bookings...");
+      navigate('/my-bookings');
     }
-    
-    alert('✅ Payment successful! Your booking is confirmed.');
-    navigate('/my-bookings');
   };
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <h3>Loading booking details...</h3>
-        <p>Please wait</p>
+      <div style={{ textAlign: 'center', padding: '100px' }}>
+        <div className="spinner"></div>
+        <p>Loading Secure Checkout...</p>
       </div>
     );
   }
 
-  const totalAmount = booking?.totalAmount || booking?.totalPrice || 800;
+  const amountToPay = booking?.totalPrice || booking?.totalAmount || 0;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <h1>Complete Payment</h1>
-      
+    <div className="payment-page-container" style={{ maxWidth: '700px', margin: '50px auto', padding: '20px' }}>
+      <header style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '2.5rem', color: '#333' }}>Finalize Payment</h1>
+        <p style={{ color: '#666' }}>Secure transaction via Stripe</p>
+      </header>
+
       {error && (
-        <div style={{
-          background: '#fff3cd',
-          padding: '15px',
-          borderRadius: '5px',
-          marginBottom: '20px',
-          border: '1px solid #ffeaa7'
-        }}>
-          <h3 style={{ color: '#856404' }}>⚠️ Note</h3>
-          <p>{error}</p>
-          <p>You can still test the payment system.</p>
+        <div style={{ padding: '15px', background: '#fff5f5', color: '#e53e3e', borderRadius: '10px', marginBottom: '20px', border: '1px solid #fed7d7' }}>
+          ⚠️ {error}
         </div>
       )}
 
-      <div style={{
-        background: '#f5f5f5',
-        padding: '20px',
-        borderRadius: '10px',
-        marginBottom: '30px'
-      }}>
-        <h3>Payment Summary</h3>
-        <p><strong>Booking ID:</strong> {booking?._id || bookingId || 'Test'}</p>
-        <p><strong>Bike:</strong> {booking?.bike?.name || 'Test Bike'}</p>
-        <p><strong>Price per hour:</strong> ₹{booking?.bike?.pricePerHour || booking?.bike?.price || 100}</p>
-        <p><strong>Total Amount:</strong> ₹{totalAmount}</p>
-        <p><strong>Status:</strong> <span style={{
-          color: booking?.status === 'pending' ? '#ff9800' : 
-                 booking?.status === 'confirmed' ? '#4caf50' : '#f44336'
-        }}>{booking?.status || 'Pending payment'}</span></p>
+      {/* RENTAL SUMMARY CARD */}
+      <div className="summary-box" style={{ background: '#fff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', marginBottom: '30px', border: '1px solid #f0f0f0' }}>
+        <h3 style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Rental Details</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+          <span style={{ color: '#777' }}>Vehicle:</span>
+          <span style={{ fontWeight: 'bold' }}>{booking?.bike?.name || 'Loading...'}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+          <span style={{ color: '#777' }}>Duration:</span>
+          <span>
+            {booking?.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'} - {booking?.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', marginTop: '10px', borderTop: '2px solid #f0f0f0' }}>
+          <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Total Payable:</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: '800', color: '#28a745' }}>Rs. {amountToPay}</span>
+        </div>
       </div>
 
-      <Payment
-        amount={totalAmount}
-        bookingId={bookingId || 'test'}
-        onSuccess={handlePaymentSuccess}
-      />
-
-      <div style={{ marginTop: '30px', textAlign: 'center' }}>
-        <button 
-          onClick={() => navigate('/my-bookings')}
-          style={{
-            padding: '10px 20px',
-            background: '#4caf50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            marginRight: '10px'
-          }}
-        >
-          View My Bookings
-        </button>
-        
-        <button 
-          onClick={() => navigate('/bikes')}
-          style={{
-            padding: '10px 20px',
-            background: '#2196f3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          Book Another Bike
-        </button>
+      {/* STRIPE PAYMENT COMPONENT */}
+      <div style={{ background: '#fff', padding: '25px', borderRadius: '15px', border: '1px solid #007bff20' }}>
+        <Payment
+          amount={amountToPay}
+          bookingId={bookingId}
+          onSuccess={handlePaymentSuccess}
+        />
       </div>
+
+      <p style={{ textAlign: 'center', color: '#999', fontSize: '0.9rem', marginTop: '30px' }}>
+        🔒 Your payment data is encrypted and secure.
+      </p>
     </div>
   );
 }
