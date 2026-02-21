@@ -24,10 +24,13 @@ const Login = () => {
       const res = await api.post("/users/login", input); 
       const { token, role, name, email, _id } = res.data;
 
+      // ✅ Central function sets the correct 'token_user' or 'token_admin'
       login({ id: _id, name, email, role }, token);
 
-      // ✅ LOGIC FIX: Always navigate to Home
-      navigate("/");
+      // ✅ ROLE-BASED REDIRECTION
+      if (role === 'admin') navigate("/admin");
+      else if (role === 'owner') navigate("/owner-dashboard");
+      else navigate("/"); 
 
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
@@ -41,8 +44,8 @@ const Login = () => {
       <form className="auth-box" onSubmit={handleSubmit}>
         <h2>Login</h2>
         {error && <div className="auth-error-box">{error}</div>}
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
+        <input type="email" name="email" placeholder="Email" value={input.email} onChange={handleChange} required />
+        <input type="password" name="password" placeholder="Password" value={input.password} onChange={handleChange} required />
         <button type="submit" disabled={loading}>{loading ? "Verifying..." : "Login"}</button>
         <p>Don't have an account? <Link to="/register">Register here</Link></p>
       </form>

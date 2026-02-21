@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminBikes from "./pages/AdminBikes"; 
 import AdminUsers from "./pages/AdminUsers"; 
 import BookingConfirmation from "./pages/BookingConfirmation";
+import OwnerDashboard from "./pages/OwnerDashboard"; 
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "your_key_here");
 
@@ -33,10 +34,6 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        {/* NAVBAR LOGIC: 
-          We use a separate Routes block to hide the main Navbar 
-          when the user is in any admin-related page.
-        */}
         <Routes>
           <Route path="/admin/*" element={null} />
           <Route path="/admin-login" element={null} />
@@ -83,15 +80,16 @@ export default function App() {
                 <BookingConfirmation />
               </ProtectedRoute>
             } />
-            
-            {/* 🔴 NESTED ADMIN ROUTES (THE SHELL) */}
-            {/* The AdminLayout acts as the Parent. 
-               It contains the Sidebar. All child routes 
-               render inside the Outlet of AdminLayout.
-            */}
-            <Route 
-              path="/admin" 
-              element={
+
+            {/* 🔵 PROTECTED OWNER ROUTES */}
+            <Route path="/owner-dashboard" element={
+              <ProtectedRoute allowedRoles={['owner']}>
+                <OwnerDashboard /> 
+              </ProtectedRoute>
+            } />
+
+            {/* 🔴 NESTED ADMIN ROUTES */}
+            <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLayout /> 
                 </ProtectedRoute>
@@ -102,7 +100,6 @@ export default function App() {
               <Route path="users" element={<AdminUsers />} /> 
             </Route>
 
-            {/* ⚪ CATCH-ALL REDIRECT */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Elements>

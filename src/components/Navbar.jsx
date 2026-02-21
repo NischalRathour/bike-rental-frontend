@@ -6,7 +6,20 @@ import "../styles/Navbar.css";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+
+  // Helper function to determine where the dashboard link goes
+  const getDashboardLink = () => {
+    if (user.role === 'admin') return '/admin';
+    if (user.role === 'owner') return '/owner-dashboard';
+    return '/customer';
+  };
+
+  // Helper function for the Label text
+  const getDashboardLabel = () => {
+    if (user.role === 'admin') return 'Admin Panel';
+    if (user.role === 'owner') return 'Owner Panel';
+    return 'My Dashboard';
+  };
 
   return (
     <nav className="navbar">
@@ -20,13 +33,13 @@ const Navbar = () => {
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/bikes" className="nav-link">Bikes</Link>
           
-          {/* ✅ THE LOGIC FIX: Dynamic Dashboard Link */}
+          {/* ✅ THE LOGIC FIX: 3-Way Actor Dashboard Link */}
           {user && (
             <Link 
-              to={user.role === 'admin' ? '/admin' : '/customer'} 
+              to={getDashboardLink()} 
               className="nav-link dashboard-highlight"
             >
-              <FaColumns /> {user.role === 'admin' ? 'Admin Panel' : 'My Dashboard'}
+              <FaColumns /> {getDashboardLabel()}
             </Link>
           )}
         </div>
