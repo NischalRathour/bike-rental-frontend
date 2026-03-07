@@ -1,36 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  DollarSign, ShoppingBag, Bike, Users, RefreshCw, 
-  ChevronRight, Filter, Download, Leaf, Award, Trash2 
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { DollarSign, Activity, Leaf, Zap, RefreshCw, Download } from 'lucide-react';
 import StatCard from '../components/admin/StatCard';
 import "../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
-  const [data, setData] = useState({ stats: {}, bookings: [] });
+  const [data, setData] = useState({ stats: {}, recentBookings: [] });
   const [loading, setLoading] = useState(true);
-  const [lastSynced, setLastSynced] = useState(new Date().toLocaleTimeString());
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await api.get('/admin/dashboard');
-      if (res.data.success) {
-        setData({ stats: res.data.stats, bookings: res.data.recentBookings });
-        setLastSynced(new Date().toLocaleTimeString());
-      }
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
-
-  const deleteBooking = async (id) => {
-    if (window.confirm("Delete this booking record forever?")) {
-      try {
-        await api.delete(`/admin/bookings/${id}`);
-        fetchData();
-      } catch (err) { alert("Delete failed"); }
+      if (res.data.success) setData(res.data);
+    } catch (err) { 
+      console.error("Telemetry Sync Error", err); 
+    } finally { 
+      setLoading(false); 
     }
   };
 
@@ -38,78 +26,89 @@ const AdminDashboard = () => {
     try {
       const res = await api.get('/admin/report');
       if (res.data.success) {
-        const blob = new Blob([JSON.stringify(res.data.report, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `RideNRoar_Report_${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
+        const r = res.data.report;
+        alert(`📊 REPORT GENERATED\n\nDate: ${r.generatedAt}\nRevenue: Rs. ${r.metrics.grossRevenue}\nEco Impact: ${r.metrics.ecoImpact}\nStatus: ${r.status}`);
+        console.log("Full Audit Log:", r);
       }
-    } catch (err) { alert("Report generation failed"); }
+    } catch (err) {
+      alert("Report Engine Sync Error: Check Backend Routes");
+    }
   };
 
   useEffect(() => { fetchData(); }, []);
 
+  const days = ["", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const chartData = data.stats.revenueTrend?.map(item => ({
+    day: days[item._id] || "Day",
+    revenue: item.revenue
+  })) || [{ day: 'N/A', revenue: 0 }];
+
   const statConfig = [
-    { label: "Revenue", val: `Rs. ${data.stats.totalRevenue?.toLocaleString() || 0}`, icon: <DollarSign />, color: "green", trend: "+12.5%" },
-    { label: "Bookings", val: data.stats.totalBookings || 0, icon: <ShoppingBag />, color: "blue", trend: "+5.2%" },
-    { label: "CO2 Saved", val: `${data.stats.totalCo2Saved || 0} KG`, icon: <Leaf />, color: "green-glow", trend: "Eco-Friendly" },
-    { label: "Fleet Eco-Score", val: `${data.stats.ecoScore || 0}/100`, icon: <Award />, color: "purple", trend: "Top Tier" },
+    { label: "Gross Revenue", val: `Rs. ${data.stats.totalRevenue?.toLocaleString() || 0}`, icon: <DollarSign />, color: "green", trend: "+12%" },
+    { label: "Fleet Availability", val: `${data.stats.availableBikes || 0} Units`, icon: <Activity />, color: "blue", trend: "Live" },
+    { label: "Carbon Offset", val: `${data.stats.totalCo2Saved || 0} KG`, icon: <Leaf />, color: "green-glow", trend: "Eco-Logic" },
+    { label: "Eco-Efficiency", val: `${data.stats.ecoScore || 0}%`, icon: <Zap />, color: "purple", trend: "Optimal" },
   ];
 
+  if (loading && !data.stats.totalBookings) return <div className="admin-loader">Synchronizing Telemetry...</div>;
+
   return (
-    <div className="dashboard-content-wrapper">
-      <div className="page-header">
-        <div>
-          <h1 className="advanced-title">Fleet Command Center</h1>
-          <p className="subtitle-text">Real-time telemetry for Kathmandu Division. Last synced: {lastSynced}</p>
+    <div className="admin-glass-base">
+      <header className="admin-modern-header">
+        <div className="title-block">
+          <h1 className="hero-gradient-text">Operations Intelligence</h1>
+          <p className="subtitle-faded">Real-time System Monitoring</p>
         </div>
-        <div className="header-button-group">
-          <button onClick={handleGenerateReport} className="export-btn"><Download size={16}/> Export Report</button>
-          <button onClick={fetchData} className={`sync-btn ${loading ? 'anim-spin' : ''}`}>
-            <RefreshCw size={18} /> {loading ? 'Syncing...' : 'Refresh Fleet'}
+        <div className="header-actions">
+          <button onClick={handleGenerateReport} className="btn-glass-secondary">
+            <Download size={16}/> Export Report
+          </button>
+          <button onClick={fetchData} className={`btn-glass-primary ${loading ? 'anim-spin' : ''}`}>
+            <RefreshCw size={16}/> Sync Engine
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="stats-grid-modern">
+      <div className="stats-grid-visual">
         {statConfig.map((item, i) => <StatCard key={i} item={item} index={i} />)}
       </div>
 
-      <section className="table-card-premium">
-        <div className="table-header">
-          <h2>Live Rental Requests</h2>
-          <div className="live-status-pill"><span className="pulse-ring"></span> {data.stats.pendingBookings || 0} Urgent</div>
-        </div>
+      <div className="dashboard-main-grid">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="analytics-card-glass">
+          <h3>Revenue & Sustainability Pulse</h3>
+          <ResponsiveContainer width="100%" height={320}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="#94a3b8" fontSize={12} />
+              <Tooltip contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '12px' }} />
+              <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#colorRev)" strokeWidth={3} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
 
-        <div className="custom-table-wrapper">
-          <table className="modern-data-table">
-            <thead>
-              <tr><th>Customer</th><th>Vehicle</th><th>Status</th><th>Operational Action</th></tr>
-            </thead>
-            <tbody>
-              {data.bookings.map((b) => (
-                <tr key={b._id} className="table-row-hover">
-                  <td>
-                    <div className="customer-cell">
-                      <div className="initials">{b.user?.name?.charAt(0)}</div>
-                      <div><p className="c-name">{b.user?.name}</p><p className="c-email">{b.user?.email}</p></div>
-                    </div>
-                  </td>
-                  <td><span className="bike-tag">{b.bike?.name}</span></td>
-                  <td><span className={`badge-status ${b.status?.toLowerCase()}`}>{b.status}</span></td>
-                  <td>
-                    <div className="action-btn-group">
-                      <button className="manage-action-btn">Details</button>
-                      <button onClick={() => deleteBooking(b._id)} className="delete-action-btn"><Trash2 size={14} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="side-panel-glass">
+          <h3>Recent Booking Traffic</h3>
+          <div className="traffic-list">
+            {data.recentBookings?.map((b) => (
+              <div key={b._id} className="traffic-item">
+                <div className="user-initials">{b.user?.name?.charAt(0) || "U"}</div>
+                <div className="traffic-info">
+                  <p className="p-main">{b.user?.name || "Guest"}</p>
+                  <p className="p-sub">{b.bike?.name || "Generic Unit"}</p>
+                </div>
+                <div className={`tag-status ${b.status?.toLowerCase()}`}>{b.status}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

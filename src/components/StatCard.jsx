@@ -1,11 +1,21 @@
-import React from "react";
+import React from 'react';
+import { motion } from 'framer-motion';
 
-const StatCard = ({ title, value }) => {
+const StatCard = ({ item, index }) => {
   return (
-    <div className="stat-card">
-      <h4>{title}</h4>
-      <p>{value}</p>
-    </div>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className={`stat-card-glass ${item.color}`}
+    >
+      <div className="stat-icon-wrapper">{item.icon}</div>
+      <div className="stat-content">
+        <p className="stat-label">{item.label}</p>
+        <h3 className="stat-value">{item.val}</h3>
+        <span className="stat-trend">{item.trend}</span>
+      </div>
+    </motion.div>
   );
 };
 

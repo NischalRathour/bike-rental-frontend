@@ -24,13 +24,24 @@ const Login = () => {
       const res = await api.post("/users/login", input); 
       const { token, role, name, email, _id } = res.data;
 
-      // ✅ Central function sets the correct 'token_user' or 'token_admin'
+      // ✅ 1. Sync with AuthContext
+      // This handles storing token_admin, token_owner, or token_user based on role
       login({ id: _id, name, email, role }, token);
 
-      // ✅ ROLE-BASED REDIRECTION
-      if (role === 'admin') navigate("/admin");
-      else if (role === 'owner') navigate("/owner-dashboard");
-      else navigate("/"); 
+      // ✅ 2. TARGETED REDIRECTION
+      // We change the behavior ONLY for these two actors
+      if (role === 'admin') {
+        console.log("Admin authenticated. Launching Command Center...");
+        navigate("/admin");
+      } 
+      else if (role === 'owner') {
+        console.log("Owner authenticated. Launching Fleet Dashboard...");
+        navigate("/owner-dashboard");
+      } 
+      else {
+        // Customer login remains unchanged
+        navigate("/"); 
+      }
 
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
@@ -43,10 +54,32 @@ const Login = () => {
     <div className="auth-container">
       <form className="auth-box" onSubmit={handleSubmit}>
         <h2>Login</h2>
+        <p className="auth-subtitle">Welcome back to Ride N Roar</p>
+        
         {error && <div className="auth-error-box">{error}</div>}
-        <input type="email" name="email" placeholder="Email" value={input.email} onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" value={input.password} onChange={handleChange} required />
-        <button type="submit" disabled={loading}>{loading ? "Verifying..." : "Login"}</button>
+        
+        <input 
+          type="email" 
+          name="email" 
+          placeholder="Email" 
+          value={input.email} 
+          onChange={handleChange} 
+          required 
+        />
+        
+        <input 
+          type="password" 
+          name="password" 
+          placeholder="Password" 
+          value={input.password} 
+          onChange={handleChange} 
+          required 
+        />
+        
+        <button type="submit" disabled={loading}>
+          {loading ? "Authorizing..." : "Login"}
+        </button>
+        
         <p>Don't have an account? <Link to="/register">Register here</Link></p>
       </form>
     </div>

@@ -17,10 +17,10 @@ const AdminLogin = () => {
   
   const navigate = useNavigate();
 
-  // Guard: If admin is already logged in and tries to access login page, send to home
   useEffect(() => {
+    // If already logged in as admin, go to admin portal
     if (!authLoading && user && user.role === 'admin') {
-      navigate('/'); 
+      navigate('/admin'); 
     }
   }, [user, authLoading, navigate]);
 
@@ -31,28 +31,27 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
-      setError('Please provide both email and password.');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      const response = await api.post('/users/login', formData); // Using shared login route
+      const response = await api.post('/users/login', formData);
       
       if (response.data) {
         const { token, role, name, email, _id } = response.data;
         
-        // Sync with AuthContext
+        // Ensure we only let admins in through this specific portal
+        if (role !== 'admin') {
+          setError('Access restricted to administrators.');
+          setLoading(false);
+          return;
+        }
+
         login({ id: _id, name, email, role }, token);
-        
-        // ✅ LOGIC FIX: Send to Home instead of Dashboard
-        navigate('/'); 
+        navigate('/admin'); // Redirect to the Landing Page
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed.');
+      setError(err.response?.data?.message || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
@@ -88,7 +87,7 @@ const AdminLogin = () => {
           </div>
 
           <button type="submit" className="login-button" disabled={loading}>
-            {loading ? 'Verifying...' : 'Access Site'}
+            {loading ? 'Decrypting Credentials...' : 'Access Portal'}
           </button>
         </form>
       </div>

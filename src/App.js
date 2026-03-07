@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 
@@ -30,79 +30,91 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "your_key_here");
 
+// Helper component to handle Navbar visibility
+const AppContent = () => {
+  const location = useLocation();
+  // Hide Navbar for any route starting with /admin or the admin-login page
+  const showNavbar = !location.pathname.startsWith('/admin') && location.pathname !== '/admin-login';
+
+  return (
+    <>
+      {showNavbar && <Navbar />}
+      <Elements stripe={stripePromise}>
+        <Routes>
+          {/* 🟢 PUBLIC ROUTES */}
+          <Route path="/" element={<Home />} />
+          <Route path="/bikes" element={<Bikes />} />
+          <Route path="/bikes/:id" element={<BikeDetails />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Updated Admin Login Route */}
+          <Route path="/admin-login" element={<AdminLogin />} />
+
+          {/* 🔴 PROTECTED CUSTOMER ROUTES */}
+          <Route path="/customer" element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerDashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/my-bookings" element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <MyBookings />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/book/:id" element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <Booking />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/payment/:bookingId" element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <PaymentPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/booking-success" element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <BookingConfirmation />
+            </ProtectedRoute>
+          } />
+
+          {/* 🔵 PROTECTED OWNER ROUTES */}
+          <Route path="/owner-dashboard" element={
+            <ProtectedRoute allowedRoles={['owner']}>
+              <OwnerDashboard /> 
+            </ProtectedRoute>
+          } />
+
+          {/* 🔴 NESTED ADMIN ROUTES (Updated Structure) */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout /> 
+            </ProtectedRoute>
+          } >
+            {/* Redirect /admin to /admin/dashboard */}
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} /> 
+            <Route path="bikes" element={<AdminBikes />} /> 
+            <Route path="users" element={<AdminUsers />} /> 
+          </Route>
+
+          {/* 404 Redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Elements>
+    </>
+  );
+};
+
 export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/admin/*" element={null} />
-          <Route path="/admin-login" element={null} />
-          <Route path="*" element={<Navbar />} />
-        </Routes>
-        
-        <Elements stripe={stripePromise}>
-          <Routes>
-            {/* 🟢 PUBLIC ROUTES */}
-            <Route path="/" element={<Home />} />
-            <Route path="/bikes" element={<Bikes />} />
-            <Route path="/bikes/:id" element={<BikeDetails />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
-
-            {/* 🔴 PROTECTED CUSTOMER ROUTES */}
-            <Route path="/customer" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerDashboard />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/my-bookings" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <MyBookings />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/book/:id" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <Booking />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/payment/:bookingId" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <PaymentPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/booking-success" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <BookingConfirmation />
-              </ProtectedRoute>
-            } />
-
-            {/* 🔵 PROTECTED OWNER ROUTES */}
-            <Route path="/owner-dashboard" element={
-              <ProtectedRoute allowedRoles={['owner']}>
-                <OwnerDashboard /> 
-              </ProtectedRoute>
-            } />
-
-            {/* 🔴 NESTED ADMIN ROUTES */}
-            <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminLayout /> 
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} /> 
-              <Route path="bikes" element={<AdminBikes />} /> 
-              <Route path="users" element={<AdminUsers />} /> 
-            </Route>
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Elements>
+        <AppContent />
       </Router>
     </AuthProvider>
   );

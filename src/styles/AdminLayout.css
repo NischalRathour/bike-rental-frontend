@@ -1,67 +1,229 @@
-/* Modal Styling */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 23, 42, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(4px);
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+:root {
+    --admin-bg: #0f172a;
+    --sidebar-bg: rgba(30, 41, 59, 0.7);
+    --accent-primary: #6366f1;
+    --accent-secondary: #10b981;
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
 }
 
-.modal-content {
-  background: white;
-  width: 500px;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--admin-bg);
+    color: var(--text-main);
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 25px;
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
 }
 
-.form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+/* --- SIDEBAR --- */
+.admin-sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
 }
 
-.input-group label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 5px;
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 3rem;
 }
 
-.input-group input {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  outline: none;
+.brand-text .main-name {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 25px;
+.brand-text .sub-name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
-.btn-save {
-  background: #00dbde;
-  color: #0f172a;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--text-muted);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.15), transparent);
+    color: var(--accent-primary);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 2rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+.admin-user-info {
+    margin-bottom: 1.5rem;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--accent-secondary);
+    margin: 4px 0 0 0;
+}
+
+.logout-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-trigger:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* --- MAIN CONTENT & WELCOME SCREEN --- */
+.admin-main-content {
+    flex-grow: 1;
+    padding: 3rem;
+    overflow-y: auto;
+}
+
+.hero-gradient-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle-faded {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+}
+
+.quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 2rem;
+}
+
+.quick-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.quick-card:hover {
+    transform: translateY(-10px);
+    background: rgba(30, 41, 59, 0.8);
+    border-color: var(--accent-primary);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.card-icon.blue { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+.card-icon.green { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+.card-icon.purple { background: rgba(168, 85, 247, 0.1); color: #c084fc; }
+
+.quick-card h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.quick-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Animation for loading */
+.admin-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
 }
