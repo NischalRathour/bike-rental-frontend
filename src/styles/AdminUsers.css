@@ -1,82 +1,166 @@
-.user-directory-wrapper {
-  padding: 2rem;
-  background: transparent;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+:root {
+  --primary-accent: #6366f1;
+  --bg-dark: #0f172a;
+  --surface-light: #f8fafc;
+  --border-glass: rgba(226, 232, 240, 0.8);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 }
 
-.directory-header {
+.admin-identity-portal {
+  background: var(--surface-light);
+  min-height: 100vh;
+  padding: 50px 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text-main);
+}
+
+.portal-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+/* --- COMMAND HEADER --- */
+.portal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2.5rem;
+  align-items: flex-end;
+  margin-bottom: 50px;
 }
 
-.search-glass {
+.portal-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  background: linear-gradient(135deg, #0f172a 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.global-stats-row { display: flex; gap: 20px; }
+.mini-stat {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  padding: 0.8rem 1.5rem;
-  border-radius: 16px;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  width: 350px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.search-glass input {
-  border: none;
-  background: transparent;
-  margin-left: 10px;
-  width: 100%;
-  outline: none;
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.user-tiles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.user-tile-glass {
+  gap: 8px;
   background: white;
-  border-radius: 24px;
-  padding: 2rem;
-  text-align: center;
-  position: relative;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.03);
-}
-
-.role-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.role-badge.admin { background: #e0e7ff; color: #4338ca; }
-.role-badge.owner { background: #fef3c7; color: #92400e; }
-.role-badge.customer { background: #f1f5f9; color: #475569; }
-
-.avatar-circle {
-  width: 65px;
-  height: 65px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  color: white;
-  border-radius: 50%;
-  margin: 0 auto 1.2rem;
-  display: grid;
-  place-items: center;
-  font-size: 1.5rem;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 0.7rem;
   font-weight: 700;
-  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+  color: var(--text-muted);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
 }
 
-.user-tile-glass h3 { margin-bottom: 5px; color: #0f172a; }
-.user-tile-glass p { color: #64748b; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.icon-pulse { color: #10b981; animation: pulse 2s infinite; }
+
+.portal-controls { display: flex; gap: 15px; }
+
+.search-glass-wrapper {
+  background: white;
+  border: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-radius: 16px;
+  width: 350px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.03);
+  transition: 0.3s ease;
+}
+
+.search-glass-wrapper:focus-within {
+  border-color: var(--primary-accent);
+  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.1);
+}
+
+.search-glass-wrapper input {
+  border: none; padding: 14px; outline: none; width: 100%; font-size: 0.9rem; font-weight: 600;
+}
+
+.btn-portal-filter {
+  background: white; border: 1px solid var(--border-glass);
+  width: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); cursor: pointer; transition: 0.3s;
+}
+
+.btn-portal-filter:hover { background: #f1f5f9; color: var(--primary-accent); }
+
+/* --- DATA TERMINAL --- */
+.data-terminal-card {
+  background: white;
+  border-radius: 28px;
+  border: 1px solid var(--border-glass);
+  overflow: hidden;
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05);
+}
+
+.identity-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.identity-data-table th {
+  background: #fcfcfd;
+  padding: 22px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  border-bottom: 1px solid #f1f5f9;
+  text-transform: uppercase;
+}
+
+.identity-data-table td {
+  padding: 24px 22px;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 0.95rem;
+}
+
+.id-profile-cell { display: flex; align-items: center; gap: 18px; }
+.avatar-hex {
+  width: 40px; height: 40px; background: var(--bg-dark);
+  color: white; border-radius: 12px; display: flex; align-items: center;
+  justify-content: center; font-weight: 800; font-size: 0.9rem;
+}
+
+.id-text strong { display: block; color: var(--bg-dark); font-size: 1rem; }
+.id-text span { font-size: 0.7rem; color: #94a3b8; font-weight: 600; }
+
+.access-pill-modern {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;
+}
+.access-pill-modern.admin { background: #eef2ff; color: var(--primary-accent); }
+.access-pill-modern.customer { background: #f8fafc; color: #64748b; }
+
+.email-link-cell { color: var(--text-muted); font-weight: 500; }
+
+.terminal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-action-revoke {
+  background: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6;
+  width: 38px; height: 38px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: 0.3s;
+}
+
+.btn-action-revoke:hover { transform: scale(1.1); background: #e11d48; color: white; }
+
+/* --- LOADER --- */
+.admin-loading-vault { height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.vault-spinner { 
+  width: 45px; height: 45px; border: 4px solid #f1f5f9; border-top-color: var(--primary-accent); 
+  border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; 
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+@media (max-width: 1024px) {
+  .portal-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .search-glass-wrapper { width: 100%; }
+}

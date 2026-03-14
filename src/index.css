@@ -1,17 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
 
+:root {
+  --primary: #6366f1;
+  --dark-navy: #0f172a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1e293b;
   overflow-x: hidden;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+/* Fix for the "Big Image" issue globally */
+img {
+  max-width: 100%;
+  display: block;
 }
 
 a {
@@ -22,5 +32,5 @@ a {
 button {
   cursor: pointer;
   border: none;
-  outline: none;
+  background: none;
 }

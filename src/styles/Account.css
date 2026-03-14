@@ -1,0 +1,84 @@
+.account-page-wrapper {
+  background: #f8fafc;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.account-card-managed {
+  background: white;
+  width: 100%;
+  max-width: 550px;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.account-header {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.profile-avatar-large {
+  width: 80px; height: 80px;
+  background: #6366f1;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.header-text h1 { font-size: 1.8rem; font-weight: 800; margin: 0 0 5px 0; color: #0f172a; }
+
+.role-pill {
+  font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 100px;
+}
+.role-pill.admin { background: #e0e7ff; color: #4338ca; }
+.role-pill.customer { background: #f1f5f9; color: #64748b; }
+
+.info-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  color: #64748b;
+}
+
+.info-row label { display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+.info-row p { margin: 2px 0 0 0; color: #1e293b; font-weight: 600; }
+.status-active { color: #10b981 !important; }
+
+.admin-alert-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 20px;
+  border-radius: 16px;
+  display: flex;
+  gap: 15px;
+  color: #1e40af;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.account-footer-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 40px;
+}
+
+.btn-account-admin {
+  flex: 1; background: #0f172a; color: white; padding: 14px; border-radius: 12px;
+  border: none; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+}
+
+.btn-account-logout {
+  flex: 1; background: #fef2f2; color: #ef4444; padding: 14px; border-radius: 12px;
+  border: 1px solid #fee2e2; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+}

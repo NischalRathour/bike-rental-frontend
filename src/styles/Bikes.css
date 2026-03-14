@@ -1,125 +1,158 @@
-.bikes-container {
-  padding: 40px 20px;
+:root {
+  --primary-blue: #2563eb;
+  --dark-slate: #0f172a;
+  --glass-bg: #f8fafc;
+  --border: #e2e8f0;
+}
+
+.bikes-marketplace {
+  background: #fff;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* --- FILTER BAR --- */
+.bikes-filter-bar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 15px 0;
+}
+
+.filter-content {
   max-width: 1200px;
   margin: 0 auto;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
 }
 
-.bikes-header {
-  text-align: center;
-  margin-bottom: 40px;
+.category-group { display: flex; gap: 10px; }
+
+.filter-pill {
+  padding: 8px 20px;
+  border-radius: 100px;
+  background: var(--glass-bg);
+  color: var(--dark-slate);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: 0.3s;
 }
 
-.bikes-header h1 {
-  font-size: 2.5rem;
-  color: #1e3a8a;
+.filter-pill.active {
+  background: var(--primary-blue);
+  color: white;
 }
 
-.bikes-header p {
-  font-size: 1.1rem;
-  color: #555;
-  margin-top: 10px;
+.search-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--glass-bg);
+  padding: 8px 15px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
-.bike-grid {
+.search-mini input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+/* --- LISTING GRID --- */
+.container-managed {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.listing-header { margin-bottom: 40px; }
+.listing-header h2 { font-size: 2rem; font-weight: 800; color: var(--dark-slate); }
+.listing-header p { color: #64748b; margin-top: 5px; }
+
+.bikes-grid-managed {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 30px;
 }
 
-.bike-card {
-  background-color: #fff;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.bike-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-}
-
-.bike-image img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.bike-card:hover .bike-image img {
-  transform: scale(1.05);
-}
-
-.bike-info {
-  padding: 15px 20px;
-  text-align: center;
-}
-
-.bike-info h3 {
-  font-size: 1.4rem;
-  margin-bottom: 8px;
-  color: #111;
-}
-
-.price {
-  font-weight: bold;
-  color: #0b6e4f;
-  margin-bottom: 10px;
-}
-
-.status {
-  display: inline-block;
-  padding: 5px 12px;
+/* --- PREMIUM CARD --- */
+.premium-bike-card {
+  background: white;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
+  overflow: hidden;
+  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.status.available {
-  background-color: #e0fdf4;
-  color: #0b6e4f;
+.premium-bike-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
 }
 
-.status.unavailable {
-  background-color: #fde0e0;
-  color: #b00020;
+.card-image-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3; /* THIS LOCKS THE IMAGE SIZE UNIFORMLY */
+  background: #f1f5f9;
 }
 
-.bike-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+.card-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Prevents bikes from stretching */
+  padding: 20px;
 }
 
-.bike-actions button {
-  padding: 8px 15px;
-  border-radius: 8px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.type-badge {
+  position: absolute; top: 15px; left: 15px;
+  background: white; padding: 4px 10px;
+  border-radius: 8px; font-size: 0.7rem; font-weight: 800;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.view-btn {
-  background-color: #1e3a8a;
-  color: #fff;
+.card-details { padding: 25px; }
+
+.details-top {
+  display: flex; justify-content: space-between;
+  font-size: 0.75rem; color: #94a3b8; font-weight: 700;
 }
 
-.view-btn:hover {
-  background-color: #3746b1;
+.rating-tag { display: flex; align-items: center; gap: 4px; color: var(--dark-slate); }
+
+.premium-bike-card h3 { font-size: 1.25rem; margin: 10px 0; font-weight: 800; color: var(--dark-slate); }
+
+.price-tag { font-size: 1.15rem; font-weight: 800; color: var(--primary-blue); }
+.price-tag span { font-size: 0.8rem; color: #94a3b8; font-weight: 400; }
+
+.card-trust {
+  display: flex; gap: 15px; margin: 15px 0;
+  font-size: 0.75rem; color: #10b981; font-weight: 700;
 }
 
-.book-btn {
-  background-color: #0b6e4f;
-  color: #fff;
+.card-trust span { display: flex; align-items: center; gap: 5px; }
+
+/* --- ACTIONS --- */
+.card-actions {
+  display: flex; gap: 10px; margin-top: 20px;
 }
 
-.book-btn:hover {
-  background-color: #13875b;
+.details-link {
+  flex: 1; text-align: center; padding: 12px;
+  background: var(--glass-bg); border-radius: 12px;
+  font-weight: 700; font-size: 0.9rem;
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.book-now-btn {
+  flex: 2; text-align: center; padding: 12px;
+  background: var(--dark-slate); color: white;
+  border-radius: 12px; font-weight: 700; font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
 }
+
+.book-now-btn:hover { background: var(--primary-blue); }

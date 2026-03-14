@@ -6,22 +6,22 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // 1. Stay on this screen while AuthContext is talking to the backend
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white' }}>
-        <p>Ride N Roar: Verifying Session...</p>
+        <p>Ride N Roar: Verifying Kathmandu Session...</p>
       </div>
     );
   }
 
-  // 2. Check for tokens in storage if state isn't ready
   const hasToken = localStorage.getItem('token_admin') || localStorage.getItem('token_user');
+
+  // If no user object in memory AND no tokens in storage, redirect to login
   if (!user && !hasToken) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Role Validation based on User model ["admin", "customer"]
+  // Role validation: matches your User model role ["customer", "admin"]
   if (user && allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }

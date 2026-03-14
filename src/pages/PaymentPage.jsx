@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig'; 
 import Payment from '../components/Payment';
+import { ShieldCheck, Lock, CreditCard, ChevronLeft, Info, Bike, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
+import "../styles/PaymentPage.css";
 
 function PaymentPage() {
   const { bookingId } = useParams();
@@ -14,18 +17,13 @@ function PaymentPage() {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        console.log(`🔄 Fetching details for booking: ${bookingId}`);
         const response = await api.get(`/bookings/${bookingId}`);
-        
-        // ✅ FIX: Access response.data.booking because of your controller structure
         if (response.data && response.data.booking) {
           setBooking(response.data.booking);
         } else {
-          // Fallback if structure is different
           setBooking(response.data);
         }
       } catch (err) {
-        console.error('❌ Error fetching booking:', err.response?.data || err.message);
         setError('We couldn’t retrieve your booking details. Please refresh.');
       } finally {
         setLoading(false);
@@ -38,22 +36,18 @@ function PaymentPage() {
   }, [bookingId]);
 
   const handlePaymentSuccess = async (paymentId) => {
-    console.log('✅ Stripe Payment Success. Updating backend...');
-    
     try {
       const finalAmount = booking?.totalPrice;
-
-      // 1. Update the booking status in MongoDB via your specific route
       await api.put(`/bookings/${bookingId}/pay`, {
         paymentId: paymentId,
         amount: finalAmount
       });
 
-      // 2. Navigate to success page with full state for the receipt
       navigate('/booking-success', {
         state: {
           bookingId: bookingId,
           bikeName: booking?.bike?.name || "Ride N Roar Bike",
+          bikeImage: booking?.bike?.images?.[0],
           startDate: booking?.startDate,
           endDate: booking?.endDate,
           totalPrice: finalAmount,
@@ -62,75 +56,123 @@ function PaymentPage() {
       });
 
     } catch (err) {
-      console.error('❌ Backend update failed:', err.message);
-      alert("Payment verified! Your booking is being processed.");
-      navigate('/customer'); // Send to dashboard as fallback
+      navigate('/customer-dashboard'); 
     }
   };
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px', color: '#1e293b' }}>
-        <div className="admin-spinner" style={{ margin: '0 auto' }}></div>
-        <p style={{ marginTop: '20px', fontWeight: 'bold' }}>Initialising Secure Checkout...</p>
+      <div className="pay-loader-container">
+        <div className="pay-spinner"></div>
+        <p>Initializing Secure Checkout...</p>
       </div>
     );
   }
 
-  // ✅ Use totalPrice directly from the synced booking state
   const amountToPay = booking?.totalPrice || 0;
 
   return (
-    <div className="payment-page-container" style={{ maxWidth: '600px', margin: '40px auto', padding: '20px' }}>
-      <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '2rem', color: '#1e293b', fontWeight: '800' }}>Finalize Payment</h1>
-        <p style={{ color: '#64748b' }}>Secure transaction for your Kathmandu ride</p>
-      </header>
-
-      {error && (
-        <div style={{ padding: '15px', background: '#fee2e2', color: '#b91c1c', borderRadius: '12px', marginBottom: '20px', border: '1px solid #fecaca' }}>
-          ⚠️ {error}
-        </div>
-      )}
-
-      {/* RENTAL SUMMARY CARD */}
-      <div style={{ background: '#fff', padding: '25px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-        <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#1e293b' }}>Rental Summary</h3>
+    <div className="payment-page-wrapper">
+      <div className="pay-container-managed">
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <span style={{ color: '#64748b' }}>Bike Model:</span>
-          <span style={{ fontWeight: '700', color: '#1e293b' }}>{booking?.bike?.name}</span>
+        {/* 🛡️ SECURITY STEPPER */}
+        <div className="checkout-stepper">
+          <div className="step completed"><CheckCircle size={16}/> Details</div>
+          <div className="step-line active"></div>
+          <div className="step active"><CreditCard size={16}/> Payment</div>
+          <div className="step-line"></div>
+          <div className="step">Finish</div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <span style={{ color: '#64748b' }}>Rental Period:</span>
-          <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>
-            {new Date(booking?.startDate).toLocaleDateString()} - {new Date(booking?.endDate).toLocaleDateString()}
-          </span>
+        <button className="btn-back-soft" onClick={() => navigate(-1)}>
+          <ChevronLeft size={18} /> Modify Booking
+        </button>
+
+        <div className="pay-grid-layout">
+          
+          {/* 📝 LEFT: PAYMENT TERMINAL */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }} 
+            animate={{ opacity: 1, x: 0 }}
+            className="payment-terminal-side"
+          >
+            <div className="terminal-card">
+              <header className="terminal-header">
+                <div className="secure-badge">
+                  <Lock size={14} /> SECURE VAULT
+                </div>
+                <h3>Card Information</h3>
+              </header>
+
+              <div className="stripe-component-wrapper">
+                <Payment
+                  amount={amountToPay}
+                  bookingId={bookingId}
+                  onSuccess={handlePaymentSuccess}
+                />
+              </div>
+
+              <div className="payment-guarantee">
+                <ShieldCheck size={20} color="#10b981" />
+                <p>Your payment is processed by Stripe. Ride N Roar never stores your card details.</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 🧾 RIGHT: RENTAL SUMMARY */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }} 
+            animate={{ opacity: 1, x: 0 }}
+            className="payment-summary-side"
+          >
+            <div className="summary-receipt-card">
+              <h4>Ride Summary</h4>
+              
+              <div className="receipt-item">
+                <div className="r-icon"><Bike size={18}/></div>
+                <div className="r-text">
+                  <span>Vehicle Model</span>
+                  <strong>{booking?.bike?.name}</strong>
+                </div>
+              </div>
+
+              <div className="receipt-item">
+                <div className="r-icon"><Calendar size={18}/></div>
+                <div className="r-text">
+                  <span>Rental Period</span>
+                  <strong>{new Date(booking?.startDate).toLocaleDateString()} - {new Date(booking?.endDate).toLocaleDateString()}</strong>
+                </div>
+              </div>
+
+              <div className="price-final-stack">
+                <div className="p-row">
+                   <span>Subtotal</span>
+                   <span>Rs. {amountToPay.toLocaleString()}</span>
+                </div>
+                <div className="p-row">
+                   <span>Tax & Fees</span>
+                   <span className="free">Included</span>
+                </div>
+                <div className="p-divider"></div>
+                <div className="p-row grand-total">
+                   <span>Grand Total</span>
+                   <span>Rs. {amountToPay.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="help-alert-box">
+                <Info size={16} />
+                <p>Need help? Contact our Kathmandu 24/7 Support.</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px 0 0', borderTop: '2px dashed #e2e8f0' }}>
-          <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1e293b' }}>Total Amount:</span>
-          <span style={{ fontSize: '1.4rem', fontWeight: '800', color: '#10b981' }}>Rs. {amountToPay.toLocaleString()}</span>
-        </div>
-      </div>
-
-      {/* STRIPE PAYMENT COMPONENT */}
-      <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-        <Payment
-          amount={amountToPay}
-          bookingId={bookingId}
-          onSuccess={handlePaymentSuccess}
-        />
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: '25px' }}>
-        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-          🔒 Encrypted by Stripe. Ride N Roar never stores your card details.
-        </p>
       </div>
     </div>
   );
 }
+
+// Internal Mini-Component for Stepper Check
+const CheckCircle = ({size}) => <ShieldCheck size={size} />;
 
 export default PaymentPage;
