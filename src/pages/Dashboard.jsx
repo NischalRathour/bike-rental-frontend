@@ -1,165 +1,144 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { 
+  Bike, CheckCircle, Clock, Wallet, 
+  Calendar, Search, ChevronRight, LayoutDashboard,
+  MapPin, Settings
+} from "lucide-react";
 import "../styles/Dashboard.css";
-import {
-  FaMotorcycle,
-  FaCheckCircle,
-  FaClock,
-  FaMoneyBillWave,
-} from "react-icons/fa";
 
 const recentBookings = [
-  {
-    bike: "Yamaha FZ",
-    date: "2025-12-14",
-    status: "Active",
-    amount: 2500,
-    images: [
-      "/images/yamaha-fz-1.jpg",
-      "/images/yamaha-fz-2.jpg",
-      "/images/yamaha-fz-3.jpg",
-    ],
-  },
-  {
-    bike: "Royal Enfield",
-    date: "2025-12-10",
-    status: "Completed",
-    amount: 4000,
-    images: [
-      "/images/royal-enfield-1.jpg",
-      "/images/royal-enfield-2.jpg",
-      "/images/royal-enfield-3.jpg",
-    ],
-  },
-  {
-    bike: "Honda CB350",
-    date: "2025-12-12",
-    status: "Active",
-    amount: 3500,
-    images: [
-      "/images/honda-cb350-1.jpg",
-      "/images/honda-cb350-2.jpg",
-      "/images/honda-cb350-3.jpg",
-    ],
-  },
-  {
-    bike: "KTM Duke 390",
-    date: "2025-12-15",
-    status: "Pending",
-    amount: 3000,
-    images: [
-      "/images/ktm-duke-1.jpg",
-      "/images/ktm-duke-2.jpg",
-      "/images/ktm-duke-3.jpg",
-    ],
-  },
-  {
-    bike: "Suzuki Gixxer",
-    date: "2025-12-09",
-    status: "Completed",
-    amount: 2800,
-    images: [
-      "/images/suzuki-gixxer-1.jpg",
-      "/images/suzuki-gixxer-2.jpg",
-      "/images/suzuki-gixxer-3.jpg",
-    ],
-  },
-  {
-    bike: "TVS Apache",
-    date: "2025-12-11",
-    status: "Active",
-    amount: 2200,
-    images: [
-      "/images/tvs-apache-1.jpg",
-      "/images/tvs-apache-2.jpg",
-      "/images/tvs-apache-3.jpg",
-    ],
-  },
-  {
-    bike: "Bajaj Pulsar",
-    date: "2025-12-08",
-    status: "Completed",
-    amount: 2000,
-    images: [
-      "/images/bajaj-pulsar-1.jpg",
-      "/images/bajaj-pulsar-2.jpg",
-      "/images/bajaj-pulsar-3.jpg",
-    ],
-  },
+  { id: "BK-7701", bike: "Yamaha FZ V3", date: "2026-03-14", status: "Active", amount: 2500, img: "/images/yamaha-fz-1.jpg", type: "City" },
+  { id: "BK-7705", bike: "Royal Enfield Classic", date: "2026-03-10", status: "Completed", amount: 4000, img: "/images/royal-enfield-1.jpg", type: "Touring" },
+  { id: "BK-7708", bike: "KTM Duke 390", date: "2026-03-15", status: "Pending", amount: 3000, img: "/images/ktm-duke-1.jpg", type: "Dirt" },
+  { id: "BK-7710", bike: "Honda CB350", date: "2026-03-12", status: "Active", amount: 3500, img: "/images/honda-cb350-1.jpg", type: "Cruiser" },
 ];
 
 const Dashboard = () => {
   return (
-    <div className="dashboard-container">
+    <div className="premium-dashboard-root">
+      <div className="dashboard-container-max">
+        
+        {/* 🚀 DYNAMIC HEADER SECTION */}
+        <header className="dashboard-hero-card">
+          <div className="hero-main-content">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              className="welcome-text"
+            >
+              <span className="live-status-pill">
+                <span className="pulse-dot"></span> System Live
+              </span>
+              <h1>Command Center</h1>
+              <p>Welcome back! You have <strong>4 motorcycles</strong> currently out on the road.</p>
+            </motion.div>
 
-      <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>Welcome back! Manage your bike rentals easily 🚲</p>
-      </div>
+            <div className="hero-search-wrapper">
+              <Search size={18} className="search-icon" />
+              <input type="text" placeholder="Track Booking ID..." />
+            </div>
+          </div>
+        </header>
 
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <FaMotorcycle className="stat-icon" />
-          <h3>Total Bookings</h3>
-          <p>12</p>
+        {/* 📊 KPI INTELLIGENCE GRID */}
+        <div className="intelligence-stats-grid">
+          <div className="intel-card">
+            <div className="icon-box blue"><Bike size={22} /></div>
+            <div className="intel-info">
+              <span className="label">Total Fleet</span>
+              <h3>12 Units</h3>
+            </div>
+          </div>
+          <div className="intel-card">
+            <div className="icon-box amber"><Clock size={22} /></div>
+            <div className="intel-info">
+              <span className="label">Active Rides</span>
+              <h3>03 Sessions</h3>
+            </div>
+          </div>
+          <div className="intel-card">
+            <div className="icon-box green"><CheckCircle size={22} /></div>
+            <div className="intel-info">
+              <span className="label">Returns Today</span>
+              <h3>02 Units</h3>
+            </div>
+          </div>
+          <div className="intel-card">
+            <div className="icon-box purple"><Wallet size={22} /></div>
+            <div className="intel-info">
+              <span className="label">Net Revenue</span>
+              <h3>Rs. 45,200</h3>
+            </div>
+          </div>
         </div>
 
-        <div className="stat-card">
-          <FaClock className="stat-icon" />
-          <h3>Active Rentals</h3>
-          <p>3</p>
-        </div>
+        {/* 🏍️ MANAGED OPERATIONS LISTING */}
+        <section className="ops-management-section">
+          <div className="section-head-flex">
+            <div className="title-block">
+              <h2>Recent Fleet Activity</h2>
+              <p>Real-time updates from Kathmandu Central Station</p>
+            </div>
+            <div className="action-block">
+              <button className="btn-outline">Download Ledger</button>
+              <button className="btn-primary-small">Manage Fleet</button>
+            </div>
+          </div>
 
-        <div className="stat-card">
-          <FaCheckCircle className="stat-icon" />
-          <h3>Completed</h3>
-          <p>9</p>
-        </div>
+          <div className="advanced-data-grid">
+            {/* Table Header */}
+            <div className="grid-labels">
+              <span>VEHICLE & ID</span>
+              <span>RENTAL DATE</span>
+              <span>STATUS</span>
+              <span>TOTAL REVENUE</span>
+              <span>ACTION</span>
+            </div>
 
-        <div className="stat-card">
-          <FaMoneyBillWave className="stat-icon" />
-          <h3>Pending Payments</h3>
-          <p>2</p>
-        </div>
-      </div>
-
-      <div className="dashboard-table">
-        <h2>Recent Bookings</h2>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Bike</th>
-              <th>Images</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-
-          <tbody>
+            {/* Table Rows */}
             {recentBookings.map((booking, index) => (
-              <tr key={index}>
-                <td>{booking.bike}</td>
-
-                <td>
-                  <div className="bike-images">
-                    {booking.images.map((img, i) => (
-                      <img key={i} src={img} alt={`${booking.bike}-${i}`} />
-                    ))}
+              <motion.div 
+                key={booking.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="grid-row-item"
+              >
+                <div className="vehicle-meta">
+                  <div className="img-container">
+                    <img src={booking.img} alt={booking.bike} />
                   </div>
-                </td>
+                  <div className="v-text">
+                    <strong>{booking.bike}</strong>
+                    <span>{booking.id} • {booking.type}</span>
+                  </div>
+                </div>
 
-                <td>{booking.date}</td>
-                <td className={`status ${booking.status.toLowerCase()}`}>
-                  {booking.status}
-                </td>
-                <td>Rs. {booking.amount}</td>
-              </tr>
+                <div className="cell-date">
+                  <Calendar size={14} /> {booking.date}
+                </div>
+
+                <div className="cell-status">
+                  <span className={`status-pill-v2 ${booking.status.toLowerCase()}`}>
+                    {booking.status}
+                  </span>
+                </div>
+
+                <div className="cell-price">
+                  <strong>Rs. {booking.amount.toLocaleString()}</strong>
+                </div>
+
+                <div className="cell-action">
+                  <button className="icon-btn" title="View Details">
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </motion.div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </section>
       </div>
-
     </div>
   );
 };

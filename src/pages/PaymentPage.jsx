@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig'; 
-import Payment from '../components/Payment';
-import { ShieldCheck, Lock, CreditCard, ChevronLeft, Info, Bike, Calendar } from 'lucide-react';
+import Payment from '../components/Payment'; // This is your Stripe Elements Wrapper
+import { ShieldCheck, Lock, CreditCard, ChevronLeft, Info, Bike, Calendar, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import "../styles/PaymentPage.css";
 
-function PaymentPage() {
+const PaymentPage = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   
@@ -17,14 +17,16 @@ function PaymentPage() {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
+        setLoading(true);
+        // GET the booking we just created
         const response = await api.get(`/bookings/${bookingId}`);
-        if (response.data && response.data.booking) {
-          setBooking(response.data.booking);
-        } else {
-          setBooking(response.data);
-        }
+        
+        // Handle different response structures from backend
+        const data = response.data.booking || response.data;
+        setBooking(data);
       } catch (err) {
-        setError('We couldn’t retrieve your booking details. Please refresh.');
+        console.error("Payment Fetch Error:", err);
+        setError('We couldn’t retrieve your booking details. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -35,28 +37,32 @@ function PaymentPage() {
     }
   }, [bookingId]);
 
+  // This function is triggered after Stripe confirms the card charge
   const handlePaymentSuccess = async (paymentId) => {
     try {
-      const finalAmount = booking?.totalPrice;
-      await api.put(`/bookings/${bookingId}/pay`, {
-        paymentId: paymentId,
-        amount: finalAmount
+      // 1. Tell the backend to mark the booking as "Paid" and "Confirmed"
+      await api.post(`/payments/confirm`, {
+        bookingId: bookingId,
+        paymentId: paymentId
       });
 
+      // 2. Navigate to success page with full details for the receipt
       navigate('/booking-success', {
         state: {
           bookingId: bookingId,
-          bikeName: booking?.bike?.name || "Ride N Roar Bike",
+          bikeName: booking?.bike?.name || "Premium Motorbike",
           bikeImage: booking?.bike?.images?.[0],
           startDate: booking?.startDate,
           endDate: booking?.endDate,
-          totalPrice: finalAmount,
+          totalPrice: booking?.totalPrice,
           transactionId: paymentId
         }
       });
 
     } catch (err) {
-      navigate('/customer-dashboard'); 
+      console.error("Confirmation Error:", err);
+      // Fallback to dashboard if navigation fails
+      navigate('/customer'); 
     }
   };
 
@@ -64,7 +70,17 @@ function PaymentPage() {
     return (
       <div className="pay-loader-container">
         <div className="pay-spinner"></div>
-        <p>Initializing Secure Checkout...</p>
+        <p>Initializing Secure Vault...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pay-error-container">
+        <Info size={40} color="#ef4444" />
+        <p>{error}</p>
+        <button onClick={() => navigate('/bikes')}>Return to Fleet</button>
       </div>
     );
   }
@@ -75,36 +91,35 @@ function PaymentPage() {
     <div className="payment-page-wrapper">
       <div className="pay-container-managed">
         
-        {/* 🛡️ SECURITY STEPPER */}
-        <div className="checkout-stepper">
-          <div className="step completed"><CheckCircle size={16}/> Details</div>
-          <div className="step-line active"></div>
-          <div className="step active"><CreditCard size={16}/> Payment</div>
-          <div className="step-line"></div>
-          <div className="step">Finish</div>
+        {/* 🛡️ CHECKOUT STEPPER */}
+        <div className="checkout-stepper-row">
+          <div className="step-item done"><CheckCircle size={14}/> Booking</div>
+          <div className="step-divider active"></div>
+          <div className="step-item active"><CreditCard size={14}/> Secure Payment</div>
+          <div className="step-divider"></div>
+          <div className="step-item">Confirmation</div>
         </div>
 
-        <button className="btn-back-soft" onClick={() => navigate(-1)}>
-          <ChevronLeft size={18} /> Modify Booking
+        <button className="btn-back-nav" onClick={() => navigate(-1)}>
+          <ChevronLeft size={18} /> Back to Reservation
         </button>
 
-        <div className="pay-grid-layout">
+        <div className="pay-main-grid">
           
-          {/* 📝 LEFT: PAYMENT TERMINAL */}
+          {/* 💳 LEFT: STRIPE TERMINAL */}
           <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="payment-terminal-side"
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="payment-form-column"
           >
-            <div className="terminal-card">
-              <header className="terminal-header">
-                <div className="secure-badge">
-                  <Lock size={14} /> SECURE VAULT
-                </div>
-                <h3>Card Information</h3>
+            <div className="terminal-glass-card">
+              <header className="card-security-header">
+                <div className="vault-tag"><Lock size={12} /> BANK-LEVEL SECURITY</div>
+                <h3>Credit or Debit Card</h3>
               </header>
 
-              <div className="stripe-component-wrapper">
+              <div className="stripe-input-container">
+                {/* Your custom Payment component that holds <CardElement /> */}
                 <Payment
                   amount={amountToPay}
                   bookingId={bookingId}
@@ -112,57 +127,62 @@ function PaymentPage() {
                 />
               </div>
 
-              <div className="payment-guarantee">
-                <ShieldCheck size={20} color="#10b981" />
-                <p>Your payment is processed by Stripe. Ride N Roar never stores your card details.</p>
+              <div className="security-footer-info">
+                <ShieldCheck size={18} />
+                <p>Transactions are encrypted via 256-bit SSL. Powered by Stripe.</p>
               </div>
             </div>
           </motion.div>
 
-          {/* 🧾 RIGHT: RENTAL SUMMARY */}
+          {/* 🧾 RIGHT: RECEIPT PREVIEW */}
           <motion.div 
-            initial={{ opacity: 0, x: 20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="payment-summary-side"
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="payment-details-column"
           >
-            <div className="summary-receipt-card">
-              <h4>Ride Summary</h4>
+            <div className="order-summary-card">
+              <h4>Order Summary</h4>
               
-              <div className="receipt-item">
-                <div className="r-icon"><Bike size={18}/></div>
-                <div className="r-text">
-                  <span>Vehicle Model</span>
-                  <strong>{booking?.bike?.name}</strong>
+              <div className="order-item">
+                <div className="item-icon"><Bike size={20}/></div>
+                <div className="item-details">
+                  <label>Vehicle Selected</label>
+                  <strong>{booking?.bike?.name || "Professional Fleet Bike"}</strong>
                 </div>
               </div>
 
-              <div className="receipt-item">
-                <div className="r-icon"><Calendar size={18}/></div>
-                <div className="r-text">
-                  <span>Rental Period</span>
-                  <strong>{new Date(booking?.startDate).toLocaleDateString()} - {new Date(booking?.endDate).toLocaleDateString()}</strong>
+              <div className="order-item">
+                <div className="item-icon"><Calendar size={20}/></div>
+                <div className="item-details">
+                  <label>Rental Duration</label>
+                  <strong>
+                    {new Date(booking?.startDate).toLocaleDateString('en-NP', {day:'numeric', month:'short'})} 
+                    - 
+                    {new Date(booking?.endDate).toLocaleDateString('en-NP', {day:'numeric', month:'short', year:'numeric'})}
+                  </strong>
                 </div>
               </div>
 
-              <div className="price-final-stack">
-                <div className="p-row">
-                   <span>Subtotal</span>
-                   <span>Rs. {amountToPay.toLocaleString()}</span>
+              <div className="billing-breakdown-box">
+                <div className="bill-line">
+                  <span>Daily Rental Subtotal</span>
+                  <span>Rs. {amountToPay.toLocaleString()}</span>
                 </div>
-                <div className="p-row">
-                   <span>Tax & Fees</span>
-                   <span className="free">Included</span>
+                <div className="bill-line">
+                  <span>GST & Service Charges</span>
+                  <span className="text-green">Included</span>
                 </div>
-                <div className="p-divider"></div>
-                <div className="p-row grand-total">
-                   <span>Grand Total</span>
-                   <span>Rs. {amountToPay.toLocaleString()}</span>
+                <div className="bill-separator"></div>
+                <div className="bill-line total">
+                  <span>Total Amount</span>
+                  <span>Rs. {amountToPay.toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="help-alert-box">
+              <div className="customer-support-alert">
                 <Info size={16} />
-                <p>Need help? Contact our Kathmandu 24/7 Support.</p>
+                <p>Payment issues? Contact +977-9843360610</p>
               </div>
             </div>
           </motion.div>
@@ -170,9 +190,6 @@ function PaymentPage() {
       </div>
     </div>
   );
-}
-
-// Internal Mini-Component for Stepper Check
-const CheckCircle = ({size}) => <ShieldCheck size={size} />;
+};
 
 export default PaymentPage;

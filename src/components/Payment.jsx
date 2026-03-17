@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import api from '../api/axiosConfig';
+import api from '../api/axiosConfig'; 
 import { ShieldCheck, Lock, CreditCard, Terminal, AlertCircle, CheckCircle2 } from 'lucide-react';
 import "../styles/Payment.css";
 
@@ -38,16 +38,19 @@ function Payment({ amount, onSuccess, bookingId }) {
 
     try {
       addLog(`📡 Generating Payment Intent for Rs. ${numericAmount}`);
-      const { data } = await api.post('/payments/create-payment-intent', {
-        amount: numericAmount
+      
+      // ✅ TARGETING FIXED ROUTE: /api/payments/create-intent
+      const { data } = await api.post('/payments/create-intent', {
+        bookingId: bookingId, // Backend uses this to find the price and link the transaction
       });
 
-      if (!data.clientSecret) throw new Error('Client secret missing.');
+      if (!data.clientSecret) throw new Error('Client secret missing from gateway.');
       addLog('✅ Intent handshake successful.');
 
       const cardElement = elements.getElement(CardElement);
       addLog('💳 Syncing card with encrypted vault...');
       
+      // 🏦 STRIPE CONFIRMATION
       const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
         data.clientSecret,
         {
@@ -71,6 +74,7 @@ function Payment({ amount, onSuccess, bookingId }) {
         
         if (bookingId && onSuccess) {
           addLog('🔄 Synchronizing booking state...');
+          // ✅ paymentIntent.id is the 'pi_...' reference from Stripe
           await onSuccess(paymentIntent.id);
           addLog('✅ Ledger updated.');
         }
@@ -79,7 +83,7 @@ function Payment({ amount, onSuccess, bookingId }) {
     } catch (err) {
       const msg = err.response?.data?.message || err.message || "Processing error";
       addLog(`❌ System Exception: ${msg}`);
-      setError(msg);
+      setError(`Gateway Error: ${msg}`);
     } finally {
       setLoading(false);
       addLog('=== END OF TRANSACTION ===');
@@ -90,9 +94,7 @@ function Payment({ amount, onSuccess, bookingId }) {
     <div className="payment-form-container">
       {success ? (
         <div className="payment-success-state">
-          <div className="success-lottie">
-            <CheckCircle2 size={48} />
-          </div>
+          <CheckCircle2 size={48} color="#10b981" />
           <h4>Authorization Successful</h4>
           <p>Your ride has been secured. Redirecting to receipt...</p>
         </div>
@@ -108,7 +110,7 @@ function Payment({ amount, onSuccess, bookingId }) {
                 base: { 
                   fontSize: '16px', 
                   color: '#1e293b',
-                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                   '::placeholder': { color: '#94a3b8' }
                 } 
               } 
@@ -128,7 +130,7 @@ function Payment({ amount, onSuccess, bookingId }) {
             className={`btn-payment-submit ${loading ? 'loading' : ''}`}
           >
             {loading ? (
-              <span className="loader-text">Validating...</span>
+              <span className="loader-text">Verifying with Bank...</span>
             ) : (
               <span className="btn-flex">
                 Pay Rs. {amount?.toLocaleString()} <Lock size={16} />
@@ -136,12 +138,18 @@ function Payment({ amount, onSuccess, bookingId }) {
             )}
           </button>
 
-          {/* 🛠️ Supervisor Presentation Log */}
+          {/* 🛠️ Debug Console for presentation */}
           <div className="debug-log-wrapper">
             <details>
               <summary><Terminal size={14} /> System Activity Log</summary>
               <div className="debug-console">
-                {debugLog.length === 0 ? "> Awaiting input..." : debugLog.map((log, i) => <div key={i} className="log-line">{log}</div>)}
+                {debugLog.length === 0 ? (
+                  <div className="log-line idle">> Awaiting user input...</div>
+                ) : (
+                  debugLog.map((log, i) => (
+                    <div key={i} className="log-line">{log}</div>
+                  ))
+                )}
               </div>
             </details>
           </div>

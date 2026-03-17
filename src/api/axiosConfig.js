@@ -1,11 +1,18 @@
 import axios from "axios";
 
+// --- DYNAMIC BASE URL FIX ---
+// This pulls the URL from your .env file. 
+// If .env is missing, it falls back to localhost:5000 as a safety measure.
+const BASE_URL = process.env.REACT_APP_BACKEND_URL 
+  ? `${process.env.REACT_APP_BACKEND_URL}/api` 
+  : "http://localhost:5000/api";
+
 const instance = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// --- REQUEST INTERCEPTOR ---
+// --- REQUEST INTERCEPTOR: MULTI-ROLE TOKEN MANAGEMENT ---
 instance.interceptors.request.use(
   (config) => {
     const token_user = localStorage.getItem("token_user");
@@ -15,22 +22,15 @@ instance.interceptors.request.use(
     const url = config.url || "";
 
     /**
-     * ✅ LOGIC FIX:
-     * 1. If we are visiting an admin route OR checking the session while logged as admin, 
-     * we MUST use token_admin.
+     * ✅ ROLE-BASED AUTHORIZATION LOGIC:
+     * We prioritize the Admin token if the request is targeting admin endpoints.
      */
     if (token_admin && (url.includes("/admin") || url.includes("/users/me"))) {
       config.headers.Authorization = `Bearer ${token_admin}`;
     } 
-    /**
-     * 2. If it's an owner route.
-     */
     else if (token_owner && (url.includes("/owner") || url.includes("/bikes/owner"))) {
       config.headers.Authorization = `Bearer ${token_owner}`;
     } 
-    /**
-     * 3. Fallback to user token for bookings, profile, and general browsing.
-     */
     else if (token_user) {
       config.headers.Authorization = `Bearer ${token_user}`;
     }
@@ -40,24 +40,25 @@ instance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// --- RESPONSE INTERCEPTOR ---
-// This part is critical to stop the "Landing Page" loop if the token expires
+// --- RESPONSE INTERCEPTOR: SESSION SECURITY ---
+// Ensures that expired or invalid tokens don't leave the user stuck in a loop.
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response ? error.response.status : null;
 
     if (status === 401 || status === 403) {
-      console.error("🔒 Unauthorized access - Clearing Session");
-      
-      // If we are in the admin panel and the token fails, clear admin specifically
+      console.warn("🔒 Security Alert: Session Expired or Unauthorized. Redirecting...");
+
+      // Determine which session to clear based on the current path
       if (window.location.pathname.startsWith('/admin')) {
         localStorage.removeItem("token_admin");
         localStorage.removeItem("adminUser");
-        window.location.replace("/login"); 
+        window.location.replace("/admin-login"); // Direct to Admin Login specifically
       } else {
         localStorage.removeItem("token_user");
         localStorage.removeItem("userInfo");
+        localStorage.removeItem("token_owner"); // Clear owner too just in case
         window.location.replace("/login");
       }
     }

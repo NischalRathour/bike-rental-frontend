@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { bikesData } from "../data/fleet"; // ✅ IMPORT LOCAL DATA
 import api from "../api/axiosConfig";
 import { 
   Calendar, 
@@ -9,13 +10,14 @@ import {
   ShieldCheck, 
   Info, 
   CreditCard,
-  Bike as BikeIcon
+  Bike as BikeIcon,
+  CheckCircle2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import "../styles/Booking.css";
 
 const Booking = () => {
-  const { id } = useParams(); // This must match the :id in your App.js route
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -27,41 +29,46 @@ const Booking = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchBike = async () => {
-      if (!id) return;
+    const loadBikeDetails = () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        // Ensure this matches the public route in your backend
-        const res = await api.get(`/bikes/${id}`);
-        setBike(res.data);
-        setError(""); 
+        // ✅ FIX: Find the bike in your local fleet.js instead of calling API
+        const selectedBike = bikesData.find((b) => b._id === id);
+        
+        if (selectedBike) {
+          setBike(selectedBike);
+          setError("");
+        } else {
+          setError("Vehicle configuration not found in local fleet.");
+        }
       } catch (err) {
-        console.error("Fetch Error:", err.response);
-        setError("Vehicle not found in the Kathmandu fleet database.");
+        setError("Error loading vehicle details.");
       } finally {
         setLoading(false);
       }
     };
-    fetchBike();
+
+    if (id) {
+      loadBikeDetails();
+    }
   }, [id]);
 
   const handleBooking = async () => {
     setError("");
     
-    // 1. Validation
     if (!date) {
-        setError("Please select a pickup date.");
+        setError("Please select a valid pickup date.");
         return;
     }
     
     if (!user) {
-        alert("Please login as a customer to book a ride.");
+        alert("Authentication required. Redirecting to login...");
         navigate("/login");
         return;
     }
 
     if (user.role !== 'customer') {
-      alert("Administrative accounts cannot create rental bookings.");
+      setError("Action restricted to Customer accounts only.");
       return;
     }
 
@@ -72,23 +79,33 @@ const Booking = () => {
       endDate.setDate(startDate.getDate() + Number(days));
       const totalPrice = bike.price * days;
 
-      // 2. Submit to backend
+      /**
+       * ⚠️ NOTE: 
+       * Your backend might still throw a 400 error here because it expects 
+       * a MongoDB ObjectId for the 'bike' field. 
+       * For the demo, ensure your backend Booking model handles the string "b1".
+       */
       const res = await api.post("/bookings", {
-        bike: bike._id,
+        bikeId: bike._id, 
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         totalPrice,
         days: Number(days)
       });
 
-      // 3. Navigate to payment with the new booking ID
-      if (res.data.success || res.data._id) {
+      if (res.data) {
         const bookingId = res.data.booking?._id || res.data._id;
-        navigate(`/payment/${bookingId}`);
+        // Pass data to confirmation/payment via state
+        navigate(`/payment/${bookingId}`, { 
+          state: { 
+            bikeName: bike.name,
+            totalPrice: totalPrice 
+          } 
+        });
       }
       
     } catch (err) {
-      setError(err.response?.data?.message || "System error during booking. Please try again.");
+      setError(err.response?.data?.message || "Booking failed. System could not create reservation.");
     } finally {
       setBookingLoading(false);
     }
@@ -96,85 +113,91 @@ const Booking = () => {
 
   if (loading || authLoading) return (
     <div className="booking-loader-container">
-        <div className="spinner"></div>
-        <p>Verifying Vehicle Availability...</p>
+        <div className="spinner-premium"></div>
+        <p>Initializing Secure Checkout...</p>
     </div>
   );
 
   if (error && !bike) return (
     <div className="booking-error-screen">
         <Info size={48} color="#ef4444" />
-        <h2>Vehicle Unreachable</h2>
+        <h2>Fleet Sync Error</h2>
         <p>{error}</p>
-        <Link to="/bikes" className="btn-back">Browse Other Bikes</Link>
+        <Link to="/bikes" className="btn-back-premium">Explore Other Vehicles</Link>
     </div>
   );
 
   return (
-    <div className="booking-page-wrapper">
+    <div className="booking-page-root">
       <div className="container-managed">
         
-        <Link to="/bikes" className="back-link">
-          <ArrowLeft size={18} /> Back to Fleet Explorer
+        <Link to={`/bikes/${id}`} className="back-link-premium">
+          <ArrowLeft size={16} /> Back to Technical Specs
         </Link>
 
-        <div className="booking-split-layout">
+        <div className="booking-premium-layout">
           
-          {/* 🏍️ LEFT: VEHICLE SUMMARY */}
+          {/* 🏍️ LEFT: SUMMARY SIDE */}
           <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="booking-summary-side"
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="booking-info-section"
           >
-            <div className="summary-card">
-              <div className="summary-img-box">
-                <img src={bike.images?.[0] || "/images/default-bike.jpg"} alt={bike.name} />
-                <div className="category-label">{bike.type || "Premium"}</div>
+            <div className="vehicle-summary-card">
+              <div className="summary-img-wrapper">
+                <img 
+                  src={bike.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc"} 
+                  alt={bike.name} 
+                />
+                <span className="type-pill">{bike.type}</span>
               </div>
-              <div className="summary-text">
+              <div className="summary-content">
                 <h2>{bike.name}</h2>
-                <div className="loc-info">
-                   <ShieldCheck size={16} color="#10b981" /> 
-                   <span>Verified & Insured Ride</span>
+                <div className="trust-badges">
+                  <div className="badge"><CheckCircle2 size={14}/> Professional Inspection</div>
+                  <div className="badge"><CheckCircle2 size={14}/> Sanitized Gear</div>
                 </div>
               </div>
             </div>
 
-            <div className="booking-info-alert">
-              <Info size={20} />
-              <p>Cancellation Policy: Full refund if cancelled 24h before pickup.</p>
+            <div className="benefits-card">
+              <h3>Rental Inclusions</h3>
+              <ul>
+                <li><ShieldCheck size={16}/> Basic Collision Protection</li>
+                <li><ShieldCheck size={16}/> 24/7 Roadside Assistance</li>
+                <li><ShieldCheck size={16}/> Transparent Pricing (No Hidden Fees)</li>
+              </ul>
             </div>
           </motion.div>
 
-          {/* 💳 RIGHT: BOOKING CONFIGURATOR */}
+          {/* 💳 RIGHT: CONFIGURATOR SIDE */}
           <motion.div 
-            initial={{ opacity: 0, x: 20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="booking-form-side"
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="booking-config-section"
           >
-            <div className="checkout-card">
-              <div className="checkout-header">
+            <div className="checkout-glass-card">
+              <div className="checkout-header-managed">
                 <h3>Reservation Details</h3>
-                <span className="live-tag">LIVE PRICE</span>
+                <span className="live-status">Secure Checkout</span>
               </div>
               
-              <div className="form-grid">
-                <div className="m-input-group">
+              <div className="booking-inputs-grid">
+                <div className="booking-input-box">
                   <label><Calendar size={14}/> Pickup Date</label>
                   <input 
                     type="date" 
-                    required
                     value={date} 
                     onChange={(e) => setDate(e.target.value)} 
                     min={new Date().toISOString().split('T')[0]} 
                   />
                 </div>
 
-                <div className="m-input-group">
+                <div className="booking-input-box">
                   <label><Clock size={14}/> Duration (Days)</label>
                   <input 
                     type="number" 
-                    required
                     min="1" 
                     value={days} 
                     onChange={(e) => setDays(Math.max(1, e.target.value))} 
@@ -182,35 +205,36 @@ const Booking = () => {
                 </div>
               </div>
 
-              <div className="price-breakdown">
-                <div className="price-row">
-                  <span>Standard Daily Rate</span>
+              <div className="billing-summary">
+                <div className="bill-row">
+                  <span>Daily Rate</span>
                   <span>Rs. {bike.price}</span>
                 </div>
-                <div className="price-row">
-                  <span>Insurance & Service</span>
-                  <span className="free">INCLUDED</span>
+                <div className="bill-row">
+                  <span>Service Fee</span>
+                  <span className="free">WAIVED</span>
                 </div>
-                <div className="price-row total">
-                  <span>Total Payable</span>
-                  <span className="price-amt">Rs. {bike.price * days}</span>
+                <div className="bill-total">
+                  <span>Grand Total</span>
+                  <span className="total-val">Rs. {bike.price * days}</span>
                 </div>
               </div>
 
-              {error && <p className="booking-error-msg">{error}</p>}
+              {error && <div className="error-alert-box">{error}</div>}
 
               <button 
-                className="btn-confirm-booking" 
+                className="btn-pay-trigger" 
                 onClick={handleBooking} 
                 disabled={bookingLoading || !date}
               >
-                {bookingLoading ? "Processing Transaction..." : "Confirm & Proceed to Payment"}
+                {bookingLoading ? "Generating Invoice..." : "Verify & Proceed to Payment"}
                 <CreditCard size={18} />
               </button>
               
-              <p className="secure-text">
-                <ShieldCheck size={14} /> PCI-DSS Compliant Encryption
-              </p>
+              <div className="security-footer">
+                <ShieldCheck size={14} /> 
+                <span>End-to-End Encrypted Transaction</span>
+              </div>
             </div>
           </motion.div>
         </div>

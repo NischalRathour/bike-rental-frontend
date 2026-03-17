@@ -1,135 +1,135 @@
-/* src/styles/Payment.css */
-
+/* --- STRIPE FORM CONTAINER --- */
 .payment-form-container {
-  width: 100%;
+    width: 100%;
 }
 
 .premium-card-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .card-input-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 5px;
 }
 
+/* --- THE STRIPE ELEMENT BOX --- */
 .stripe-element-container {
-  padding: 16px;
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 14px;
-  transition: all 0.3s ease;
+    padding: 16px;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
 }
 
 .stripe-element-container.processing {
-  opacity: 0.6;
-  border-color: #6366f1;
-  background: #f8fafc;
+    opacity: 0.6;
+    pointer-events: none;
+    background: #f1f5f9;
 }
 
 .stripe-element-container:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-/* --- PAYMENT BUTTON --- */
+/* --- PAYMENT SUBMIT BUTTON --- */
 .btn-payment-submit {
-  width: 100%;
-  padding: 16px;
-  background: #0f172a;
-  color: white;
-  border: none;
-  border-radius: 14px;
-  font-weight: 800;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    background: #0f172a;
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .btn-payment-submit:hover:not(:disabled) {
-  background: #6366f1;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
-}
-
-.btn-flex {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+    background: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
 }
 
 .btn-payment-submit:disabled {
-  background: #94a3b8;
-  cursor: not-allowed;
+    background: #cbd5e1;
+    cursor: not-allowed;
 }
 
-/* --- SUCCESS & ERROR STATES --- */
-.payment-success-state {
-  text-align: center;
-  padding: 30px;
-  background: #ecfdf5;
-  border-radius: 20px;
-  border: 1px solid #d1fae5;
+.btn-flex {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.success-lottie { color: #10b981; margin-bottom: 15px; }
-.payment-success-state h4 { color: #065f46; margin-bottom: 8px; font-weight: 800; }
-.payment-success-state p { color: #047857; font-size: 0.9rem; }
-
+/* --- ERROR & SUCCESS STATES --- */
 .payment-error-alert {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: #fef2f2;
-  color: #b91c1c;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid #fee2e2;
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 12px;
+    color: #b91c1c;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 4px;
 }
 
-/* --- DEBUG CONSOLE --- */
+.payment-success-state {
+    text-align: center;
+    padding: 20px;
+}
+
+.payment-success-state h4 {
+    margin-top: 15px;
+    color: #10b981;
+    font-size: 1.2rem;
+}
+
+/* --- DEBUG / SYSTEM LOG (FOR PRESENTATION) --- */
 .debug-log-wrapper {
-  margin-top: 10px;
+    margin-top: 25px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
 }
 
 .debug-log-wrapper summary {
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  list-style: none;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    cursor: pointer;
+    font-weight: 700;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .debug-console {
-  margin-top: 10px;
-  padding: 15px;
-  background: #1e293b;
-  border-radius: 10px;
-  max-height: 180px;
-  overflow-y: auto;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.75rem;
-  color: #34d399; /* Matrix Green */
-  line-height: 1.6;
+    background: #0f172a;
+    color: #22c55e;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.7rem;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
 }
 
 .log-line {
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 4px 0;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.log-line:last-child { border: none; }
+.log-line.idle { color: #64748b; }

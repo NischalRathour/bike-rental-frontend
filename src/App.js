@@ -13,7 +13,12 @@ import Navbar from "./components/Navbar";
 
 // Page Imports
 import Home from "./pages/Home";
-import Bikes from "./pages/Bikes";
+import HireRates from "./pages/HireRates"; 
+import Bikes from "./pages/Bikes";        
+import Tours from "./pages/Tours"; 
+import Gallery from "./pages/Gallery"; 
+import Blog from "./pages/Blog"; 
+import Contact from "./pages/Contact"; 
 import BikeDetails from "./pages/BikeDetails";
 import Booking from "./pages/Booking";
 import MyBookings from "./pages/MyBookings";
@@ -29,26 +34,37 @@ import AdminBookings from "./pages/AdminBookings";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import OwnerDashboard from "./pages/OwnerDashboard"; 
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "your_key_here");
+// --- CRITICAL FIX 1: STRIPE INITIALIZATION ---
+// We use the key you provided. 
+// Note: In Production, this must be in your .env file as REACT_APP_STRIPE_PUBLISHABLE_KEY
+const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "pk_test_51SoGdhFOkjXvJLGw4VrVT3ZDm33c0xNtmAJNkyKki45CyNhBWswKYAzjBfpbHC7l5KCOmm2WzBjnCqkbmMRxmDFA001J2tI6Qm";
+const stripePromise = loadStripe(stripeKey);
 
 const AppContent = () => {
   const location = useLocation();
   
-  // Logic to hide Navbar on Admin pages or Login pages
+  // Logic to hide Navbar on Admin pages or Admin Login
   const showNavbar = !location.pathname.startsWith('/admin') && location.pathname !== '/admin-login';
 
   return (
     <>
       {showNavbar && <Navbar />}
       
-      {/* Elements provider must wrap all routes that handle payments */}
+      {/* --- CRITICAL FIX 2: WRAPPER PLACEMENT --- */}
+      {/* Wrapping the Routes ensures PaymentPage always has access to Stripe context */}
       <Elements stripe={stripePromise}>
         <Routes>
           {/* 🟢 PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
-          <Route path="/bikes" element={<Bikes />} />
+          <Route path="/hire-rates" element={<HireRates />} /> 
+          <Route path="/bikes" element={<Bikes />} /> 
           <Route path="/bikes/:id" element={<BikeDetails />} />
+          <Route path="/tours" element={<Tours />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/contact" element={<Contact />} />
+
+          {/* 🔐 AUTH ROUTES */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin-login" element={<AdminLogin />} />
@@ -66,7 +82,6 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           
-          {/* ✅ FIXED BOOKING ROUTE: Ensures the :id is passed correctly */}
           <Route path="/book/:id" element={
             <ProtectedRoute allowedRoles={['customer']}>
               <Booking />
@@ -98,8 +113,7 @@ const AppContent = () => {
               <AdminLayout /> 
             </ProtectedRoute>
           } >
-            {/* The index route renders the "Welcome Portal" inside AdminLayout */}
-            <Route index element={null} /> 
+            <Route index element={<Navigate to="/admin/dashboard" replace />} /> 
             <Route path="dashboard" element={<AdminDashboard />} /> 
             <Route path="bikes" element={<AdminBikes />} /> 
             <Route path="bookings" element={<AdminBookings />} /> 
