@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
 import { 
   MapPin, Calendar, Clock, Star, 
-  CheckCircle2, ShieldCheck, ArrowRight, 
+  ShieldCheck, ArrowRight, 
   Mountain, Users, Coffee 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import api from '../api/axiosConfig'; // ✅ Integrated Backend API
+import api from '../api/axiosConfig';
 import "../styles/HireRates.css"; 
 
 const Tours = () => {
-  // 1. Form State Management
   const [formData, setFormData] = useState({ 
     fullName: "", 
     groupSize: "1 Person (Solo)" 
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Tour Static Data
   const tourDetails = {
     name: "Upper Mustang Expedition",
     price: 45000,
@@ -29,7 +27,6 @@ const Tours = () => {
     image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2000"
   };
 
-  // 2. Form Submission Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -37,184 +34,183 @@ const Tours = () => {
       const response = await api.post('/tours/inquiry', {
         fullName: formData.fullName,
         groupSize: formData.groupSize,
-        tourName: tourDetails.name // Automatically sends the featured tour name
+        tourName: tourDetails.name 
       });
-      
       alert(response.data.message || "Inquiry sent successfully!");
-      setFormData({ fullName: "", groupSize: "1 Person (Solo)" }); // Reset form
+      setFormData({ fullName: "", groupSize: "1 Person (Solo)" });
     } catch (err) {
-      console.error("Inquiry Error:", err);
-      alert(err.response?.data?.message || "Failed to send inquiry. Please check your connection.");
+      alert(err.response?.data?.message || "Failed to send inquiry.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="hire-page-root" style={{ paddingTop: '100px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+    <div className="hire-page-root" style={{ paddingTop: '120px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       
-      {/* 🏔️ TOUR HERO SECTION */}
-      <section className="container-managed" style={{ marginBottom: '60px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
+      {/* 🚀 MAIN CONTENT WRAPPER */}
+      <div className="container-full-managed" style={{ width: '92%', maxWidth: '1600px', margin: '0 auto' }}>
+        
+        {/* 🏔️ TOUR HERO SECTION: 2-COLUMN GRID */}
+        <section style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '50px', alignItems: 'start', marginBottom: '80px' }}>
           
-          {/* LEFT SIDE: TOUR INFO */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <div style={{ position: 'relative', borderRadius: '32px', overflow: 'hidden', height: '450px', marginBottom: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+          {/* LEFT SIDE: VISUALS & CONTENT */}
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
+            <div style={{ position: 'relative', borderRadius: '40px', overflow: 'hidden', height: '550px', marginBottom: '40px', boxShadow: '0 30px 60px rgba(15, 23, 42, 0.15)' }}>
               <img src={tourDetails.image} alt={tourDetails.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', top: '20px', left: '20px', background: '#6366f1', color: '#fff', padding: '8px 20px', borderRadius: '100px', fontWeight: '800', fontSize: '0.8rem' }}>
+              <div style={{ position: 'absolute', top: '30px', left: '30px', background: '#6366f1', color: '#fff', padding: '10px 25px', borderRadius: '100px', fontWeight: '800', fontSize: '0.75rem', letterSpacing: '1px' }}>
                 FEATURED EXPEDITION
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
-              <div>
-                <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '900', letterSpacing: '-1.5px', marginBottom: '10px', margin: 0 }}>{tourDetails.name}</h1>
-                <div style={{ display: 'flex', gap: '15px', color: '#64748b', fontWeight: '600', marginTop: '10px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Star size={16} fill="#ffc107" color="#ffc107"/> {tourDetails.rating}.0 ({tourDetails.reviews} reviews)</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={16}/> Mustang, Nepal</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '30px' }}>
+              <div style={{ flex: 1 }}>
+                <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: '900', letterSpacing: '-2px', margin: '0 0 15px 0', lineHeight: 1.1 }}>{tourDetails.name}</h1>
+                <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '700' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={18} fill="#ffc107" color="#ffc107"/> {tourDetails.rating}.0 ({tourDetails.reviews} reviews)</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={18}/> Mustang, Nepal</span>
                 </div>
               </div>
-              <div style={{ textAlign: 'left' }}>
-                <span style={{ display: 'block', fontSize: '2.2rem', fontWeight: '900', color: '#0f172a' }}>₨{tourDetails.price.toLocaleString()}</span>
-                <span style={{ color: '#64748b', fontWeight: '700' }}>per person</span>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ display: 'block', fontSize: '2.8rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>₨{tourDetails.price.toLocaleString()}</span>
+                <span style={{ color: '#64748b', fontWeight: '700', fontSize: '1rem' }}>per person / all inclusive</span>
               </div>
             </div>
 
-            <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: '#475569', marginBottom: '40px' }}>{tourDetails.description}</p>
+            <p style={{ fontSize: '1.25rem', lineHeight: '1.8', color: '#475569', marginBottom: '50px', maxWidth: '90%' }}>{tourDetails.description}</p>
 
-            {/* SPECS GRID */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '40px' }}>
-              <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                <Clock size={24} color="#6366f1" style={{ margin: '0 auto 10px' }}/>
-                <span style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>Duration</span>
-                <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{tourDetails.duration}</strong>
-              </div>
-              <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                <Mountain size={24} color="#6366f1" style={{ margin: '0 auto 10px' }}/>
-                <span style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>Difficulty</span>
-                <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{tourDetails.difficulty}</strong>
-              </div>
-              <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                <Calendar size={24} color="#6366f1" style={{ margin: '0 auto 10px' }}/>
-                <span style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>Next Batch</span>
-                <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{tourDetails.nextDate}</strong>
-              </div>
+            {/* SPECS GRID: HORIZONTAL ALIGNMENT */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '25px' }}>
+              {[
+                { icon: Clock, label: "Duration", value: tourDetails.duration },
+                { icon: Mountain, label: "Difficulty", value: tourDetails.difficulty },
+                { icon: Calendar, label: "Next Batch", value: tourDetails.nextDate }
+              ].map((spec, i) => (
+                <div key={i} style={{ background: '#fff', padding: '30px', borderRadius: '30px', border: '1px solid #e2e8f0', textAlign: 'center', transition: '0.3s' }}>
+                  <spec.icon size={28} color="#6366f1" style={{ margin: '0 auto 15px' }}/>
+                  <span style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>{spec.label}</span>
+                  <strong style={{ color: '#0f172a', fontSize: '1.1rem' }}>{spec.value}</strong>
+                </div>
+              ))}
             </div>
           </motion.div>
 
-          {/* RIGHT SIDE: INQUIRY FORM */}
-          <aside>
-            <div style={{ background: '#fff', padding: '40px', borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.08)', position: 'sticky', top: '120px' }}>
-              <h3 style={{ marginBottom: '25px', fontWeight: '800', fontSize: '1.4rem' }}>Reserve Your Spot</h3>
+          {/* RIGHT SIDE: PREMIUM INQUIRY FORM */}
+          <aside style={{ position: 'sticky', top: '120px' }}>
+            <div style={{ background: '#fff', padding: '50px', borderRadius: '40px', border: '1px solid #e2e8f0', boxShadow: '0 40px 80px -20px rgba(15, 23, 42, 0.1)' }}>
+              <h3 style={{ marginBottom: '30px', fontWeight: '900', fontSize: '1.8rem', letterSpacing: '-1px' }}>Reserve Your Spot</h3>
               
-              <form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} onSubmit={handleSubmit}>
+              <form style={{ display: 'flex', flexDirection: 'column', gap: '25px' }} onSubmit={handleSubmit}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '8px' }}>FULL NAME</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '10px', letterSpacing: '0.5px' }}>FULL NAME</label>
                   <input 
                     type="text" 
                     required
                     value={formData.fullName}
                     onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                     placeholder="Enter your name" 
-                    style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none' }} 
+                    style={{ width: '100%', padding: '18px', borderRadius: '15px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none', fontWeight: '600' }} 
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '8px' }}>GROUP SIZE</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '10px', letterSpacing: '0.5px' }}>GROUP SIZE</label>
                   <select 
                     value={formData.groupSize}
                     onChange={(e) => setFormData({...formData, groupSize: e.target.value})}
-                    style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none' }}
+                    style={{ width: '100%', padding: '18px', borderRadius: '15px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none', fontWeight: '600', cursor: 'pointer' }}
                   >
                     <option>1 Person (Solo)</option>
                     <option>2-4 People (Small Group)</option>
                     <option>5+ People (Private Group)</option>
                   </select>
                 </div>
-                <div style={{ padding: '20px', background: '#f1f5f9', borderRadius: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <span style={{ fontWeight: '600', color: '#64748b' }}>Deposit (15%)</span>
-                    <strong style={{ color: '#0f172a' }}>₨6,750</strong>
+                <div style={{ padding: '25px', background: '#f1f5f9', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: '700', color: '#64748b' }}>Deposit (15%)</span>
+                    <strong style={{ color: '#0f172a', fontSize: '1.1rem' }}>₨6,750</strong>
                   </div>
-                  <p style={{ fontSize: '0.7rem', color: '#94a3b8', margin: 0 }}>Remaining balance to be paid on arrival.</p>
+                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>The remaining balance will be collected upon arrival at our headquarters.</p>
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={submitting}
                   style={{ 
-                    width: '100%', padding: '18px', background: '#0f172a', color: '#fff', 
-                    border: 'none', borderRadius: '16px', fontWeight: '800', display: 'flex', 
-                    alignItems: 'center', justifyContent: 'center', gap: '10px', 
-                    cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 
+                    width: '100%', padding: '20px', background: '#0f172a', color: '#fff', 
+                    border: 'none', borderRadius: '18px', fontWeight: '800', fontSize: '1rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', 
+                    cursor: submitting ? 'not-allowed' : 'pointer', transition: '0.3s'
                   }}
+                  onMouseOver={(e) => !submitting && (e.currentTarget.style.background = '#6366f1')}
+                  onMouseOut={(e) => !submitting && (e.currentTarget.style.background = '#0f172a')}
                 >
-                  {submitting ? "Sending..." : "Inquire Now"} <ArrowRight size={18}/>
+                  {submitting ? "Processing..." : "Confirm Inquiry"} <ArrowRight size={20}/>
                 </button>
               </form>
             </div>
           </aside>
-        </div>
-      </section>
+        </section>
 
-      {/* 🧭 OTHER PACKAGES SECTION */}
-      <section style={{ background: '#fff', padding: '80px 0' }}>
-        <div className="container-managed">
-          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-            <span className="sub-tag">Explore More</span>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: '900' }}>Popular Adventure <span className="text-gradient">Routes</span></h2>
+        {/* 🧭 OTHER PACKAGES SECTION: WIDE GRID */}
+        <section style={{ padding: '100px 0', borderTop: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '60px' }}>
+            <div>
+              <span style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', padding: '6px 15px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase' }}>Marketplace</span>
+              <h2 style={{ fontSize: '3rem', fontWeight: '900', marginTop: '15px', letterSpacing: '-1.5px' }}>Popular Adventure Routes</h2>
+            </div>
+            <button style={{ padding: '12px 30px', borderRadius: '14px', border: '2px solid #0f172a', background: 'transparent', fontWeight: '800', cursor: 'pointer' }}>Explore All Tours</button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '40px' }}>
             {/* Manang Card */}
-            <div style={{ background: '#f8fafc', borderRadius: '24px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-              <div style={{ height: '220px', backgroundImage: 'url(https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?q=80&w=1000)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              <div style={{ padding: '25px' }}>
-                <h4 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '10px' }}>Manang Loop Adventure</h4>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.6' }}>Explore the Marsyangdi valley and high mountain lakes over 8 days of pure riding.</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: '800', color: '#6366f1' }}>₨32,000 / Person</span>
-                  <button style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: '#0f172a', color: '#fff', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}>View Details</button>
+            <div style={{ background: '#fff', borderRadius: '35px', overflow: 'hidden', border: '1px solid #e2e8f0', display: 'flex', height: '320px' }}>
+              <div style={{ flex: 1, backgroundImage: 'url(https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?q=80&w=1000)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+              <div style={{ flex: 1.2, padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <h4 style={{ fontSize: '1.6rem', fontWeight: '900', marginBottom: '15px' }}>Manang Loop</h4>
+                <p style={{ color: '#64748b', fontSize: '1rem', marginBottom: '30px', lineHeight: '1.6' }}>The Marsyangdi valley and high mountain lakes. 8 days of pure riding.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                  <span style={{ fontWeight: '900', color: '#6366f1', fontSize: '1.2rem' }}>₨32,000</span>
+                  <button style={{ padding: '12px 25px', borderRadius: '15px', border: 'none', background: '#0f172a', color: '#fff', fontWeight: '800', cursor: 'pointer' }}>View Package</button>
                 </div>
               </div>
             </div>
 
             {/* Pokhara Card */}
-            <div style={{ background: '#f8fafc', borderRadius: '24px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-              <div style={{ height: '220px', backgroundImage: 'url(https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1000)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              <div style={{ padding: '25px' }}>
-                <h4 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '10px' }}>Pokhara Valley Relax</h4>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.6' }}>Short 3-day gateway to the lake city with panoramic views of Annapurna range.</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: '800', color: '#6366f1' }}>₨12,500 / Person</span>
-                  <button style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: '#0f172a', color: '#fff', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}>View Details</button>
+            <div style={{ background: '#fff', borderRadius: '35px', overflow: 'hidden', border: '1px solid #e2e8f0', display: 'flex', height: '320px' }}>
+              <div style={{ flex: 1, backgroundImage: 'url(https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1000)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+              <div style={{ flex: 1.2, padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <h4 style={{ fontSize: '1.6rem', fontWeight: '900', marginBottom: '15px' }}>Pokhara Relax</h4>
+                <p style={{ color: '#64748b', fontSize: '1rem', marginBottom: '30px', lineHeight: '1.6' }}>Short 3-day getaway with panoramic views of the Annapurna range.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                  <span style={{ fontWeight: '900', color: '#6366f1', fontSize: '1.2rem' }}>₨12,500</span>
+                  <button style={{ padding: '12px 25px', borderRadius: '15px', border: 'none', background: '#0f172a', color: '#fff', fontWeight: '800', cursor: 'pointer' }}>View Package</button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 🛠️ TRUST SECTION */}
-      <section className="container-managed" style={{ padding: '80px 0' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px' }}>
-          <div className="trust-card" style={{ textAlign: 'center', padding: '40px', background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-            <ShieldCheck size={40} color="#6366f1" style={{ margin: '0 auto 20px' }}/>
-            <h4 style={{ fontWeight: '800', marginBottom: '10px' }}>Fully Insured</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>All our tours come with comprehensive rider and bike insurance.</p>
+        {/* 🛠️ TRUST SECTION: HORIZONTAL ALIGNMENT */}
+        <section style={{ padding: '0 0 100px 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px' }}>
+            {[
+              { icon: ShieldCheck, title: "Fully Insured", desc: "Comprehensive rider and bike insurance included." },
+              { icon: Users, title: "Expert Guides", desc: "Nepal's most experienced road captains." },
+              { icon: Coffee, title: "Premium Lodging", desc: "Handpicked tea houses and hotels for comfort." }
+            ].map((trust, i) => (
+              <div key={i} style={{ display: 'flex', gap: '20px', padding: '40px', background: '#fff', borderRadius: '35px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '20px', height: 'fit-content' }}>
+                  <trust.icon size={32} color="#6366f1"/>
+                </div>
+                <div>
+                  <h4 style={{ fontWeight: '900', fontSize: '1.2rem', marginBottom: '8px' }}>{trust.title}</h4>
+                  <p style={{ fontSize: '0.95rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>{trust.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="trust-card" style={{ textAlign: 'center', padding: '40px', background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-            <Users size={40} color="#6366f1" style={{ margin: '0 auto 20px' }}/>
-            <h4 style={{ fontWeight: '800', marginBottom: '10px' }}>Expert Guides</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>Ride with Nepal's most experienced Himalayan road captains.</p>
-          </div>
-          <div className="trust-card" style={{ textAlign: 'center', padding: '40px', background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-            <Coffee size={40} color="#6366f1" style={{ margin: '0 auto 20px' }}/>
-            <h4 style={{ fontWeight: '800', marginBottom: '10px' }}>Premium Lodging</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>We handpick the best tea houses and hotels for your comfort.</p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };

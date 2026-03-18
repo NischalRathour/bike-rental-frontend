@@ -108,7 +108,7 @@ export default function Home() {
       </section>
 
       {/* 🛡️ TRUST & SUSTAINABILITY BAR */}
-      <section className="trust-bar-pro">
+      <section className="trust-bar-pro" style={{ marginBottom: '100px' }}>
         <div className="trust-item-pro">
           <ShieldCheck size={24} />
           <div>
@@ -125,28 +125,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🏁 MANAGED FOOTER */}
-      <footer className="footer-pro">
-        <div className="footer-grid-pro">
-          <div className="f-brand-col">
-            <h2 className="logo-f">Ride N Roar</h2>
-            <p>Helping you explore the Himalayas with freedom.</p>
-          </div>
-          <div className="f-link-col">
-            <h4>Platform</h4>
-            <Link to="/bikes">Browse Fleet</Link>
-            <Link to="/register">Sign Up</Link>
-          </div>
-          <div className="f-link-col">
-            <h4>Support</h4>
-            <Link to="#">Help Center</Link>
-            <Link to="#">Privacy Policy</Link>
-          </div>
-        </div>
-        <div className="f-bottom">
-          <p>© 2026 Ride N Roar Nepal. All rights reserved.</p>
-        </div>
-      </footer>
+      {/* 🏁 NO FOOTER HERE ANYMORE! */}
+      {/* App.js will now display the professional Footer globally. */}
+      
     </div>
   );
 }
