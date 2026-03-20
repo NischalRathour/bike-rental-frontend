@@ -1,41 +1,47 @@
+/* --- PREMIUM ADMIN THEME --- */
 :root {
-  --admin-bg: #0b0f19;
-  --card-glass: rgba(17, 24, 39, 0.7);
-  --border-glass: rgba(255, 255, 255, 0.05);
-  --accent-indigo: #6366f1;
-  --accent-purple: #a855f7;
-  --text-dim: #94a3b8;
+  --admin-bg: #f8fafc;
+  --admin-card: #ffffff;
+  --admin-dark: #0f172a;
+  --admin-accent: #6366f1;
+  --admin-border: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 }
 
 .admin-dashboard-wrapper {
   background-color: var(--admin-bg);
   min-height: 100vh;
-  padding: 40px;
-  color: white;
+  padding: 100px 4% 50px;
   font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text-main);
 }
 
+/* --- HEADER AREA --- */
 .dashboard-header-pro {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .text-glow {
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   font-weight: 900;
   letter-spacing: -1.5px;
-  background: linear-gradient(to right, #fff, var(--accent-indigo));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin: 0;
 }
 
-.header-actions-pro { display: flex; gap: 15px; }
+.text-indigo {
+  color: var(--admin-accent);
+}
 
-.btn-action-primary, .btn-action-outline {
-  padding: 12px 24px;
-  border-radius: 12px;
+.btn-action-primary {
+  background: var(--admin-dark);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 16px;
+  border: none;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -44,104 +50,195 @@
   transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-action-primary { background: var(--accent-indigo); color: white; border: none; }
-.btn-action-primary:hover { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
+.btn-action-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+}
 
-.btn-action-outline { background: transparent; color: white; border: 1px solid var(--border-glass); }
-.btn-action-outline:hover { background: rgba(255, 255, 255, 0.05); }
-
-/* --- STATS GRID --- */
+/* --- KPI GRID --- */
 .stats-grid-pro {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 25px;
   margin-bottom: 40px;
 }
 
-/* --- MAIN CONTENT GRID --- */
+.glass-stat-card {
+  background: var(--admin-card);
+  padding: 30px;
+  border-radius: 30px;
+  border: 1px solid var(--admin-border);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.stat-icon {
+  background: #f1f5f9;
+  padding: 15px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin: 5px 0 0 0;
+}
+
+.stat-trend {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #10b981;
+  background: #ecfdf5;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+/* --- MAIN LAYOUT --- */
 .dashboard-main-layout {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 2fr 1fr;
   gap: 30px;
 }
 
-.chart-container-glass, .activity-panel-glass {
-  background: var(--card-glass);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-glass);
-  border-radius: 28px;
-  padding: 30px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+.chart-container-glass {
+  background: white;
+  padding: 35px;
+  border-radius: 40px;
+  border: 1px solid var(--admin-border);
 }
 
-.chart-header, .panel-header {
+.chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
 }
 
-.chart-title, .panel-header { display: flex; align-items: center; gap: 12px; }
-.chart-title h3, .panel-header h3 { font-size: 1.1rem; font-weight: 800; color: white; margin: 0; }
-
-.live-badge {
-  font-size: 0.65rem; font-weight: 900; color: var(--accent-indigo);
-  padding: 4px 10px; border: 1px solid var(--accent-indigo); border-radius: 100px;
+.live-pulse {
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse 2s infinite;
 }
 
-/* --- ACTIVITY LIST --- */
-.activity-scroll-list {
+/* --- SIDEBAR INTEL --- */
+.sidebar-intel {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.activity-card-glass {
+  background: white;
+  padding: 30px;
+  border-radius: 35px;
+  border: 1px solid var(--admin-border);
+}
+
+.activity-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  max-height: 500px;
-  overflow-y: auto;
+  margin-top: 20px;
 }
 
-.activity-card-mini {
+.activity-item-mini {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
-  border: 1px solid transparent;
-  transition: 0.3s;
+  background: #f8fafc;
+  border-radius: 20px;
 }
 
-.activity-card-mini:hover { border-color: var(--accent-indigo); background: rgba(255, 255, 255, 0.05); }
+.rider-name { font-weight: 800; font-size: 0.9rem; margin: 0; }
+.unit-name { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
 
-.activity-avatar {
-  width: 42px; height: 42px; background: var(--accent-indigo);
-  border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;
+.status-tag {
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 5px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
 }
 
-.user-name { font-weight: 700; margin: 0; font-size: 0.95rem; }
-.bike-model { font-size: 0.75rem; color: var(--text-dim); margin: 2px 0 0 0; }
+.status-tag.confirmed { background: #ecfdf5; color: #10b981; }
+.status-tag.pending { background: #fff7ed; color: #f97316; }
 
-.status-tag-pro {
-  margin-left: auto;
-  font-size: 0.65rem; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase;
+.alert-card-dark {
+  background: var(--admin-dark);
+  padding: 30px;
+  border-radius: 35px;
+  color: white;
 }
 
-.status-tag-pro.confirmed { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.status-tag-pro.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-.status-tag-pro.cancelled { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.alert-card-dark p {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  line-height: 1.6;
+}
 
-/* --- UTILS --- */
-.loading-spin { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.btn-maintenance {
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px;
+  background: #1e293b;
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
+/* --- LOADER --- */
 .admin-dashboard-loading {
-  height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 20px; color: var(--text-dim);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
 }
 
 .spinner-neon {
-  width: 40px; height: 40px; border: 3px solid rgba(99, 102, 241, 0.1);
-  border-top-color: var(--accent-indigo); border-radius: 50%; animation: spin 1s linear infinite;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid var(--admin-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-@media (max-width: 1200px) {
-  .dashboard-main-layout { grid-template-columns: 1fr; }
+/* --- ANIMATIONS --- */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
+
+.spin { animation: spin 1s linear infinite; }
+
+.flex-center { display: flex; align-items: center; }
+.mr-10 { margin-right: 10px; }

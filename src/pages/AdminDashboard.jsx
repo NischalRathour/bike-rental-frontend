@@ -2,144 +2,138 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DollarSign, Activity, Leaf, Zap, RefreshCw, Download, BarChart3, TrendingUp } from 'lucide-react';
-import StatCard from '../components/admin/StatCard';
+import { DollarSign, Users, Activity, Leaf, RefreshCw, TrendingUp, BarChart3, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import "../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
-  const [data, setData] = useState({ stats: {}, recentBookings: [] });
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
+  const fetchIntel = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/admin/dashboard');
-      if (res.data.success) setData(res.data);
-    } catch (err) { 
-      console.error("Telemetry Sync Error", err); 
-    } finally { 
-      setLoading(false); 
-    }
-  };
-
-  const handleGenerateReport = async () => {
-    try {
-      const res = await api.get('/admin/report');
+      const res = await api.get('/admin/insights');
       if (res.data.success) {
-        const r = res.data.report;
-        alert(`📊 INTELLIGENCE REPORT\n\nGenerated: ${r.generatedAt}\nGross Revenue: Rs. ${r.metrics.grossRevenue}\nEco Impact: ${r.metrics.ecoImpact}\nSystem Status: ${r.status}`);
+        setData(res.data);
       }
     } catch (err) {
-      alert("Report Engine Sync Error");
+      console.error("Telemetry Sync Error", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchIntel(); }, []);
 
-  const days = ["", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const chartData = data.stats.revenueTrend?.map(item => ({
-    day: days[item._id] || "Day",
-    revenue: item.revenue
-  })) || [{ day: 'N/A', revenue: 0 }];
+  const generateAuditReport = () => {
+    if (!data) return;
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(99, 102, 241);
+    doc.text("RIDE N ROAR: OPERATIONS AUDIT", 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
 
-  const statConfig = [
-    { label: "Gross Revenue", val: `Rs. ${data.stats.totalRevenue?.toLocaleString() || 0}`, icon: <DollarSign size={20}/>, color: "green", trend: "+12.5%" },
-    { label: "Active Fleet", val: `${data.stats.availableBikes || 0} Units`, icon: <Activity size={20}/>, color: "blue", trend: "Optimal" },
-    { label: "Carbon Offset", val: `${data.stats.totalCo2Saved || 0} KG`, icon: <Leaf size={20}/>, color: "emerald", trend: "Eco-Friendly" },
-    { label: "Eco Score", val: `${data.stats.ecoScore || 0}%`, icon: <Zap size={20}/>, color: "purple", trend: "A+ Grade" },
-  ];
+    autoTable(doc, {
+      startY: 40,
+      head: [['Metric', 'Value']],
+      body: [
+        ["Total Revenue", `Rs. ${data.stats.revenue.toLocaleString()}`],
+        ["CO2 Saved", `${data.stats.co2} kg`],
+        ["Active Riders", data.stats.users],
+        ["Fleet Ready", data.stats.availableBikes]
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [99, 102, 241] }
+    });
 
-  if (loading && !data.stats.totalBookings) return (
+    doc.save(`Audit_Report_${new Date().getTime()}.pdf`);
+  };
+
+  if (loading || !data) return (
     <div className="admin-dashboard-loading">
       <div className="spinner-neon"></div>
-      <p>Deciphering System Telemetry...</p>
+      <p>Syncing Operations Intelligence...</p>
     </div>
   );
 
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const chartData = data.stats.revenueTrend?.map(item => ({
+    day: days[item._id - 1] || "Day",
+    revenue: item.revenue
+  })) || [];
+
   return (
-    <div className="admin-dashboard-wrapper">
-      <header className="dashboard-header-pro">
-        <div className="header-intel">
-          <h1 className="text-glow">Operations Intelligence</h1>
-          <p>Real-time telemetry from Kathmandu Fleet</p>
+    <div className="admin-dashboard-wrapper" style={{ padding: '120px 4% 40px', background: '#f8fafc' }}>
+      <header className="dashboard-header-pro" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+        <div>
+          <h1 className="text-glow" style={{ fontSize: '2.5rem', fontWeight: 900 }}>Fleet <span style={{ color: '#6366f1' }}>Intelligence</span></h1>
+          <p style={{ color: '#64748b', fontWeight: '600' }}>Live Telemetry: Kathmandu Marketplace</p>
         </div>
-        <div className="header-actions-pro">
-          <button onClick={handleGenerateReport} className="btn-action-outline">
-            <Download size={18}/> <span>Export Audit</span>
+        <div style={{ display: 'flex', gap: '15px' }}>
+           <button onClick={generateAuditReport} className="btn-action-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>
+            <Download size={18}/> Audit
           </button>
-          <button onClick={fetchData} className={`btn-action-primary ${loading ? 'loading-spin' : ''}`}>
-            <RefreshCw size={18}/> <span>Sync Data</span>
+          <button onClick={fetchIntel} className="btn-action-primary" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 25px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer' }}>
+            <RefreshCw size={18} className={loading ? 'spin' : ''} /> Sync Data
           </button>
         </div>
       </header>
 
-      {/* 📊 STAT CARDS ROW */}
-      <div className="stats-grid-pro">
-        {statConfig.map((item, i) => (
-          <StatCard key={i} item={item} index={i} />
-        ))}
+      <div className="stats-grid-pro" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '25px', marginBottom: '40px' }}>
+        <StatCard label="Revenue" val={`Rs. ${data.stats.revenue.toLocaleString()}`} icon={<DollarSign/>} color="#10b981" />
+        <StatCard label="Eco Impact" val={`${data.stats.co2}kg`} icon={<Leaf/>} color="#06b6d4" />
+        <StatCard label="Riders" val={data.stats.users} icon={<Users/>} color="#6366f1" />
+        <StatCard label="Available Fleet" val={data.stats.availableBikes} icon={<Activity/>} color="#f59e0b" />
       </div>
 
-      <div className="dashboard-main-layout">
-        {/* 📈 REVENUE CHART */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          className="chart-container-glass"
-        >
-          <div className="chart-header">
-            <div className="chart-title">
-              <TrendingUp size={18} color="#6366f1" />
-              <h3>Revenue Sustainability Pulse</h3>
-            </div>
-            <span className="live-badge">LIVE FEED</span>
-          </div>
-          <div className="chart-body">
-            <ResponsiveContainer width="100%" height={350}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="day" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `Rs.${value}`} />
-                <Tooltip 
-                  contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', color: '#fff' }}
-                  itemStyle={{ color: '#6366f1' }}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#colorRev)" strokeWidth={4} dot={{ r: 4, fill: '#6366f1' }} activeDot={{ r: 8 }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
+      <div className="dashboard-main-layout" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
+        <div className="chart-container-glass" style={{ background: '#fff', padding: '30px', borderRadius: '30px', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 800 }}><TrendingUp color="#6366f1"/> Revenue Pulse</h3>
+          <ResponsiveContainer width="100%" height={350}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} />
+              <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => `Rs.${v}`} />
+              <Tooltip />
+              <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={4} fill="url(#colorRev)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
 
-        {/* 📋 RECENT ACTIVITY SIDEBAR */}
-        <div className="activity-panel-glass">
-          <div className="panel-header">
-            <BarChart3 size={18} color="#a855f7" />
-            <h3>Recent Node Traffic</h3>
-          </div>
-          <div className="activity-scroll-list">
-            {data.recentBookings?.length > 0 ? data.recentBookings.map((b) => (
-              <div key={b._id} className="activity-card-mini">
-                <div className="activity-avatar">{b.user?.name?.charAt(0) || "U"}</div>
-                <div className="activity-info">
-                  <p className="user-name">{b.user?.name || "Anonymous"}</p>
-                  <p className="bike-model">{b.bike?.name || "Ride Unit"}</p>
-                </div>
-                <div className={`status-tag-pro ${b.status?.toLowerCase()}`}>
-                  {b.status}
-                </div>
+        <div className="activity-card-glass" style={{ background: '#fff', padding: '30px', borderRadius: '30px', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ marginBottom: '20px', fontWeight: 800 }}><BarChart3 size={18}/> Recent Node Traffic</h3>
+          {data.recentBookings.map((b, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: '15px', marginBottom: '10px' }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem' }}>{b.user?.name || "Guest"}</p>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>{b.bike?.name || "Premium Unit"}</p>
               </div>
-            )) : <p className="empty-msg">No recent activity detected.</p>}
-          </div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#6366f1' }}>{b.status.toUpperCase()}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 };
+
+const StatCard = ({ label, val, icon, color }) => (
+  <div className="glass-stat-card" style={{ background: '#fff', padding: '25px', borderRadius: '25px', border: '1px solid #e2e8f0', borderBottom: `4px solid ${color}` }}>
+    <div style={{ color: color, marginBottom: '10px' }}>{icon}</div>
+    <p style={{ margin: 0, color: '#64748b', fontSize: '0.8rem', fontWeight: '800' }}>{label}</p>
+    <h2 style={{ margin: 0, fontWeight: '900', fontSize: '1.7rem' }}>{val}</h2>
+  </div>
+);
 
 export default AdminDashboard;
