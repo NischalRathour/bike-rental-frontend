@@ -1,30 +1,27 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
+import { QRCodeSVG } from "qrcode.react";
 import { 
-  CheckCircle, 
-  Calendar, 
-  ArrowLeft, 
-  MapPin, 
-  Clock, 
-  LayoutDashboard, 
-  Bike,
-  Download,
-  ShieldCheck
+  CheckCircle, Calendar, MapPin, 
+  Clock, LayoutDashboard, Bike, Download, ShieldCheck, Printer, Smartphone, ChevronRight
 } from "lucide-react";
 import "../styles/BookingConfirmation.css";
 
 const BookingConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Extract data passed from the Payment page
-  const { bikeName, bikeImage, startDate, endDate, totalPrice, bookingId } = location.state || {};
+  
+  const [details] = useState(() => {
+    if (location.state) return location.state;
+    const saved = localStorage.getItem("last_expedition");
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
-    // Trigger celebration if booking is successful
-    if (bikeName) {
+    if (details) {
+      // Premium Multi-burst Confetti
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -33,158 +30,145 @@ const BookingConfirmation = () => {
 
       const interval = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
-
+        if (timeLeft <= 0) return clearInterval(interval);
         const particleCount = 50 * (timeLeft / duration);
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
       }, 250);
     }
-  }, [bikeName]);
+  }, [details]);
 
-  // Handle case where user navigates directly to this URL without state
-  if (!bikeName) {
-    return (
-      <div className="conf-error-wrapper">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          className="conf-error-card"
-        >
-          <div className="error-icon">⚠️</div>
-          <h2>Booking Details Missing</h2>
-          <p>We couldn't find your recent booking info. This happens if you refresh the confirmation page.</p>
-          <div className="error-actions">
-            <button className="btn-return-home" onClick={() => navigate("/")}>
-              <ArrowLeft size={18} /> Back to Home
-            </button>
-            <button className="btn-to-dash" onClick={() => navigate("/customer")}>
-              <LayoutDashboard size={18} /> Go to Dashboard
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
+  if (!details) return (
+    <div className="conf-loader">
+        <div className="neon-spinner"></div>
+        <p>Synchronizing Expedition Ledger...</p>
+    </div>
+  );
+
+  const qrData = `BOOKING_ID:${details.bookingId}|UNIT:${details.bikeName}|STATUS:PAID`;
 
   return (
     <div className="confirmation-page-root">
       <div className="conf-container-max">
         
-        {/* 🎉 HERO SUCCESS SECTION */}
-        <header className="conf-hero">
+        {/* --- 🖥️ SCREEN HERO (HIDDEN ON PRINT) --- */}
+        <header className="conf-hero no-print">
           <motion.div 
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="success-badge-large"
+            initial={{ scale: 0, rotate: -180 }} 
+            animate={{ scale: 1, rotate: 0 }} 
+            className="success-icon-wrapper"
           >
-            <CheckCircle size={80} className="check-icon-main" />
+            <CheckCircle size={80} color="#10b981" />
           </motion.div>
           <motion.h1 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
           >
-            Ride Reserved!
+            Ride <span className="text-indigo">Secured.</span>
           </motion.h1>
-          <motion.p 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            Payment successful. Your adventure in Kathmandu starts soon.
-          </motion.p>
+          <p>Your premium machine is prepped and awaiting your arrival at Thamel Hub.</p>
         </header>
 
-        {/* 🏍️ THE INVOICE/SUMMARY CARD */}
-        <motion.div 
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="premium-receipt-card"
-        >
-          <div className="receipt-visual">
-            <img src={bikeImage || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc"} alt={bikeName} />
-            <div className="receipt-overlay">
-              <span className="status-pill">CONFIRMED</span>
+        {/* --- 📄 THE PRINTABLE INVOICE CARD --- */}
+        <div className="premium-receipt-card printable-area">
+          
+          {/* 🖨️ BUSINESS HEADER (PRINT ONLY) */}
+          <div className="print-header">
+             <div className="p-brand-section">
+                <h2>RIDE N ROAR <span>KTM</span></h2>
+                <p>Official Rental Invoice & Pickup Pass</p>
+                <p className="p-small">Thamel-26, Kathmandu | +977-9843360610</p>
+             </div>
+             <div className="p-meta-section">
+                <div className="p-status-pill">FULLY PAID</div>
+                <p>Invoice #: {details.bookingId?.slice(-8).toUpperCase()}</p>
+                <p>Issued: {new Date().toLocaleDateString()}</p>
+             </div>
+          </div>
+
+          {/* SIDEBAR VISUAL (HIDDEN ON PRINT) */}
+          <div className="receipt-visual no-print">
+            <img src={details.bikeImage || "/default-bike.jpg"} alt={details.bikeName} />
+            <div className="glass-overlay">
+                <div className="badge-confirmed">CONFIRMED</div>
             </div>
           </div>
 
-          <div className="receipt-data">
-            <div className="receipt-header">
-              <div>
-                <span className="label-text">VEHICLE</span>
-                <h3>{bikeName}</h3>
+          <div className="receipt-details">
+            <div className="receipt-header-main">
+              <div className="unit-info">
+                <span className="label-tiny">ASSIGNED UNIT</span>
+                <h3>{details.bikeName}</h3>
+                <span className="label-ref">Ref: #{details.bookingId?.slice(-12)}</span>
               </div>
-              <div className="receipt-id">
-                <span className="label-text">BOOKING REF</span>
-                <strong>#{bookingId?.slice(-6).toUpperCase() || "BKR-000"}</strong>
+              <div className="qr-container">
+                <QRCodeSVG value={qrData} size={90} level="H" includeMargin={true} />
+                <span className="qr-subtext">Pickup QR Pass</span>
               </div>
             </div>
 
             <div className="receipt-grid">
               <div className="grid-item">
-                <Calendar size={18} className="grid-icon" />
-                <div className="grid-text">
+                <div className="icon-box"><Calendar size={20}/></div>
+                <div className="g-content">
                   <label>Pickup Date</label>
-                  <strong>{new Date(startDate).toLocaleDateString('en-NP', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                  <strong>{new Date(details.startDate).toLocaleDateString('en-NP', {day: 'numeric', month: 'long', year: 'numeric'})}</strong>
                 </div>
               </div>
               <div className="grid-item">
-                <Clock size={18} className="grid-icon" />
-                <div className="grid-text">
+                <div className="icon-box"><Clock size={20}/></div>
+                <div className="g-content">
                   <label>Return Date</label>
-                  <strong>{new Date(endDate).toLocaleDateString('en-NP', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                  <strong>{new Date(details.endDate).toLocaleDateString('en-NP', {day: 'numeric', month: 'long', year: 'numeric'})}</strong>
                 </div>
               </div>
               <div className="grid-item">
-                <MapPin size={18} className="grid-icon" />
-                <div className="grid-text">
-                  <label>Location</label>
-                  <strong>Thamel Hub, Kathmandu</strong>
+                <div className="icon-box"><MapPin size={20}/></div>
+                <div className="g-content">
+                  <label>Pickup Hub</label>
+                  <strong>Thamel Base Station, Kathmandu</strong>
                 </div>
               </div>
               <div className="grid-item">
-                <ShieldCheck size={18} className="grid-icon" />
-                <div className="grid-text">
-                  <label>Status</label>
-                  <strong className="text-success">Paid & Secured</strong>
+                <div className="icon-box"><ShieldCheck size={20}/></div>
+                <div className="g-content">
+                  <label>Protection Status</label>
+                  <strong className="text-success">Verified & Fully Insured</strong>
                 </div>
               </div>
             </div>
 
-            <div className="receipt-footer">
-              <div className="price-total">
-                <label>Total Paid</label>
-                <div className="amount">Rs. {totalPrice?.toLocaleString()}</div>
+            <div className="receipt-footer-new">
+              <div className="total-box">
+                <span className="label-tiny">TOTAL TRANSACTION</span>
+                <div className="price-grand">Rs. {details.totalPrice?.toLocaleString()}</div>
               </div>
-              <button className="btn-download" onClick={() => window.print()}>
-                <Download size={16} /> Save Receipt
-              </button>
+              <div className="instruction-card no-print">
+                 <Smartphone size={20} className="text-indigo" />
+                 <p>Show this digital pass to the hub manager for express checkout.</p>
+              </div>
+            </div>
+
+            {/* LEGAL TERMS (PRINT ONLY) */}
+            <div className="print-footer-legal">
+               <p><strong>Security Deposit:</strong> A valid original ID and refundable security amount are required at pickup. </p>
+               <p><strong>Cancellation:</strong> 24h notice required for 80% refund. No-show results in forfeit.</p>
+               <div className="auth-sign-box">Authorized Hub Signature</div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* 🧭 POST-BOOKING ACTIONS */}
-        <div className="conf-navigation">
-          <Link to="/customer" className="action-card-link">
-            <LayoutDashboard size={24} />
-            <div>
-              <strong>Go to Dashboard</strong>
-              <span>Manage your active rentals</span>
-            </div>
+        {/* --- 🧭 NAVIGATION ACTION ROW (HIDDEN ON PRINT) --- */}
+        <div className="conf-navigation-v2 no-print">
+          <Link to="/customer" className="action-btn-secondary">
+            <LayoutDashboard size={20}/>
+            <span>Back to Dashboard</span>
           </Link>
-          <Link to="/bikes" className="action-card-link primary">
-            <Bike size={24} />
-            <div>
-              <strong>Rent Another Bike</strong>
-              <span>Explore our premium fleet</span>
-            </div>
-          </Link>
+          <button className="action-btn-primary" onClick={() => window.print()}>
+            <Printer size={20}/>
+            <span>Download PDF Invoice</span>
+            <Download size={16} className="dl-icon" />
+          </button>
         </div>
 
       </div>

@@ -10,12 +10,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Layouts & Components
 import AdminLayout from "./components/AdminLayout"; 
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer"; // ✅ IMPORTED FOOTER
+import Footer from "./components/Footer"; 
 
 // Page Imports
 import Home from "./pages/Home";
 import HireRates from "./pages/HireRates"; 
-import Bikes from "./pages/Bikes";        
+import Bikes from "./pages/Bikes";         
 import Tours from "./pages/Tours"; 
 import Gallery from "./pages/Gallery"; 
 import Blog from "./pages/Blog"; 
@@ -27,15 +27,17 @@ import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin"; 
 import Register from "./pages/Register";
 import PaymentPage from "./pages/PaymentPage";
+import Account from "./pages/Account"; // ✅ Added Account Page
 import CustomerDashboard from './pages/CustomerDashboard';
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBikes from "./pages/AdminBikes"; 
 import AdminUsers from "./pages/AdminUsers"; 
 import AdminBookings from "./pages/AdminBookings"; 
-import BookingConfirmation from "./pages/BookingConfirmation";
+import BookingConfirmation from "./pages/BookingConfirmation"; // ✅ Ensure this is correct
 import OwnerDashboard from "./pages/OwnerDashboard"; 
 
 // --- STRIPE INITIALIZATION ---
+// Replace with your real key in .env
 const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "pk_test_51SoGdhFOkjXvJLGw4VrVT3ZDm33c0xNtmAJNkyKki45CyNhBWswKYAzjBfpbHC7l5KCOmm2WzBjnCqkbmMRxmDFA001J2tI6Qm";
 const stripePromise = loadStripe(stripeKey);
 
@@ -43,7 +45,6 @@ const AppContent = () => {
   const location = useLocation();
   
   // Logic to hide Navbar and Footer on Admin pages or Admin Login
-  // This keeps the Admin Dashboard clean and professional
   const showGlobalUI = !location.pathname.startsWith('/admin') && location.pathname !== '/admin-login';
 
   return (
@@ -72,30 +73,39 @@ const AppContent = () => {
 
             {/* 🔴 PROTECTED CUSTOMER ROUTES */}
             <Route path="/customer" element={
-              <ProtectedRoute allowedRoles={['customer']}>
+              <ProtectedRoute allowedRoles={['customer', 'admin']}>
                 <CustomerDashboard />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/account" element={
+              <ProtectedRoute allowedRoles={['customer', 'admin']}>
+                <Account />
               </ProtectedRoute>
             } />
             
             <Route path="/my-bookings" element={
-              <ProtectedRoute allowedRoles={['customer']}>
+              <ProtectedRoute allowedRoles={['customer', 'admin']}>
                 <MyBookings />
               </ProtectedRoute>
             } />
             
+            {/* Booking Page */}
             <Route path="/book/:id" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <Booking />
               </ProtectedRoute>
             } />
             
+            {/* Payment Page */}
             <Route path="/payment/:bookingId" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <PaymentPage />
               </ProtectedRoute>
             } />
             
-            <Route path="/booking-success" element={
+            {/* ✅ FIXED PATH: Changed from /booking-success to /booking-confirmation */}
+            <Route path="/booking-confirmation" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <BookingConfirmation />
               </ProtectedRoute>
@@ -128,7 +138,6 @@ const AppContent = () => {
       </Elements>
 
       {/* --- PREMIUM FOOTER --- */}
-      {/* ✅ Only shows on non-admin pages */}
       {showGlobalUI && <Footer />}
     </>
   );
