@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   User, 
@@ -7,8 +7,10 @@ import {
   LayoutDashboard, 
   ChevronDown, 
   Bike, 
-  Map, 
-  PhoneCall 
+  PhoneCall,
+  Settings,
+  ShieldCheck,
+  UserCircle
 } from 'lucide-react';
 import "../styles/Navbar.css"; 
 
@@ -17,15 +19,14 @@ const Navbar = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Handle scroll effect for premium glassmorphism
+  // Sticky Glassmorphism Effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Logic for Dashboard Redirection based on Actor Role
   const getDashboardLink = () => {
     if (!user) return '/login';
     if (user.role === 'admin') return '/admin';
@@ -36,54 +37,77 @@ const Navbar = () => {
   return (
     <nav className={`nav-premium ${isScrolled ? 'nav-scrolled' : ''}`}>
       <div className="nav-container">
-        {/* 🏁 BRAND LOGO */}
+        
+        {/* 🏁 BRAND IDENTITY */}
         <Link to="/" className="nav-logo">
           <div className="logo-icon-wrapper">
             <Bike size={22} strokeWidth={3} />
           </div>
-          <span className="logo-text">Ride N Roar</span>
+          <div className="logo-text-stack">
+            <span className="logo-text-main">Ride N Roar</span>
+            <span className="logo-text-sub">KATHMANDU</span>
+          </div>
         </Link>
 
-        {/* 🗺️ MAIN BUSINESS LINKS (FDD ALIGNED) */}
+        {/* 🗺️ NAVIGATION LINKS */}
         <div className="nav-links">
           <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
-          <Link to="/bikes" className={location.pathname === '/bikes' ? 'active' : ''}>Hire Rates</Link>
-          <Link to="/tours" className={location.pathname === '/tours' ? 'active' : ''}>Tours</Link>
-          <Link to="/gallery" className={location.pathname === '/gallery' ? 'active' : ''}>Gallery</Link>
-          <Link to="/blog" className={location.pathname === '/blog' ? 'active' : ''}>Blog</Link>
-          <Link to="/contact" className="nav-contact-link">
-            <PhoneCall size={14} /> Get in touch
+          <Link to="/bikes" className={location.pathname === '/bikes' ? 'active' : ''}>Fleet</Link>
+          <Link to="/tours" className={location.pathname === '/tours' ? 'active' : ''}>Expeditions</Link>
+          <Link to="/blog" className={location.pathname === '/blog' ? 'active' : ''}>Stories</Link>
+          <Link to="/contact" className="nav-contact-pill">
+            <PhoneCall size={14} /> <span>Support</span>
           </Link>
         </div>
 
-        {/* 👤 AUTH & ACTOR LOGIC */}
+        {/* 👤 AUTHENTICATION ACTIONS */}
         <div className="nav-actions">
           {!user ? (
+            /* --- GUEST VIEW --- */
             <div className="auth-group">
-              <Link to="/login" className="btn-login-minimal">Login</Link>
-              <Link to="/register" className="btn-signup-premium">Create Account</Link>
+              <Link to="/login" className="btn-login-minimal">Sign In</Link>
+              <Link to="/register" className="btn-signup-premium">
+                Join the Fleet <ShieldCheck size={14} />
+              </Link>
             </div>
           ) : (
-            <div className="user-dropdown-trigger">
+            /* --- LOGGED-IN VIEW --- */
+            <div className="user-dropdown-container">
               <div className="user-profile-pill">
                 <div className="avatar-circle">
-                  {user.name.charAt(0).toUpperCase()}
+                  {/* ✅ FIX: Optional chaining avoids the 'charAt' crash */}
+                  {user?.name ? user.name.charAt(0).toUpperCase() : <UserCircle size={18} />}
                 </div>
                 <div className="user-info-text">
-                  <span className="user-name">{user.name}</span>
-                  <span className="user-role">{user.role}</span>
+                  <span className="user-name">{user?.name?.split(' ')[0] || "Member"}</span>
+                  <span className="user-role-tag">{user?.role}</span>
                 </div>
                 <ChevronDown size={14} className="dropdown-arrow" />
               </div>
 
-              {/* DROPDOWN MENU */}
+              {/* PREMIUM DROPDOWN CONTENT */}
               <div className="nav-dropdown-menu">
+                <div className="dropdown-meta">
+                   <p className="meta-label">Signed in as</p>
+                   <p className="meta-value">{user?.email}</p>
+                </div>
+                
+                <div className="dropdown-divider"></div>
+
                 <Link to={getDashboardLink()} className="dropdown-item">
                   <LayoutDashboard size={16} /> 
-                  {user.role === 'customer' ? 'My Bookings' : 'Control Panel'}
+                  <span>{user?.role === 'customer' ? 'My Bookings' : 'Management Hub'}</span>
                 </Link>
-                <button onClick={logout} className="dropdown-item logout-red">
-                  <LogOut size={16} /> Sign Out
+
+                <Link to="/profile" className="dropdown-item">
+                  <Settings size={16} /> 
+                  <span>Account Settings</span>
+                </Link>
+
+                <div className="dropdown-divider"></div>
+
+                <button onClick={logout} className="dropdown-item logout-action">
+                  <LogOut size={16} /> <span>Sign Out</span>
                 </button>
               </div>
             </div>

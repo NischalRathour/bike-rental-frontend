@@ -7,52 +7,94 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const checkUser = async () => {
-    const adminToken = localStorage.getItem('token_admin');
-    const userToken = localStorage.getItem('token_user');
+  const hydrateSession = async () => {
+    const token = localStorage.getItem('token_ride_roar');
+    const cachedUser = localStorage.getItem('userInfo');
 
-    // Load from storage immediately to prevent UI flicker
-    const savedUser = localStorage.getItem('userInfo');
-    if (savedUser) setUser(JSON.parse(savedUser));
-
-    if (adminToken || userToken) {
+    if (cachedUser) {
       try {
-        // ✅ PATH FIX: Hits the route you defined: router.get("/me", protect, getMe)
-        // mounted at /api/users, so axios calls /users/me
-        const endpoint = adminToken ? '/admin/dashboard' : '/users/me';
-        const res = await api.get(endpoint);
-        
+        const parsed = JSON.parse(cachedUser);
+        if (parsed && parsed.role) {
+          setUser(parsed);
+        }
+      } catch (e) {
+        localStorage.removeItem('userInfo');
+      }
+    }
+
+    if (token) {
+      try {
+        const res = await api.get('/users/me');
         if (res.data.success) {
-          setUser(res.data.user); // Sync fresh data from MongoDB
+          const freshUserData = res.data.user;
+          setUser(freshUserData);
+          localStorage.setItem('userInfo', JSON.stringify(freshUserData));
+          localStorage.setItem('userRole', freshUserData.role.toLowerCase());
         }
       } catch (err) {
-        console.error("Auth sync failed:", err);
         if (err.response?.status === 401) logout();
       }
     }
-    setLoading(false); // ✅ CRITICAL: This allows the ProtectedRoute to render the dashboard
+    setLoading(false);
   };
 
-  useEffect(() => { checkUser(); }, []);
+  useEffect(() => {
+    hydrateSession();
+  }, []);
 
+  /**
+   * 🔑 LOGIN (The "Loop Killer" Version)
+   */
   const login = (userData, token) => {
-    setUser(userData);
-    const key = userData.role === 'admin' ? 'token_admin' : 'token_user';
-    localStorage.setItem(key, token);
-    localStorage.setItem('userInfo', JSON.stringify(userData));
+    if (!userData || !userData.role) {
+      return console.error("🚨 LOGIN REJECTED: Missing role.");
+    }
+
+    // ✅ 1. Standardize Role (Forces 'admin', 'customer', etc.)
+    const role = userData.role.toLowerCase();
+    const normalizedUser = { ...userData, role };
+
+    // ✅ 2. IMMEDIATE STORAGE LOCK
+    // We save these BEFORE updating state so ProtectedRoute can see them instantly
+    localStorage.setItem('token_ride_roar', token);
+    localStorage.setItem('userInfo', JSON.stringify(normalizedUser));
+    localStorage.setItem('userRole', role); 
+    
+    // ✅ 3. Update React State
+    setUser(normalizedUser);
+
+    console.log(`✅ Vault Access Granted: [${role.toUpperCase()}]`);
   };
 
+  /**
+   * 🚪 LOGOUT
+   */
   const logout = () => {
+    const isAdmin = user?.role === 'admin' || localStorage.getItem('userRole') === 'admin';
     localStorage.clear();
     setUser(null);
-    window.location.replace('/login');
+    
+    // ✅ Use a Hard Redirect to clear all stale memory
+    window.location.href = isAdmin ? '/admin-login' : '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      loading, 
+      isAuthenticated: !!user,
+      isAdmin: (user?.role === 'admin' || localStorage.getItem('userRole') === 'admin'),
+      isOwner: (user?.role === 'owner' || localStorage.getItem('userRole') === 'owner')
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  return context;
+};

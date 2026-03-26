@@ -2,15 +2,15 @@ import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { 
-  User, Mail, ShieldCheck, LogOut, Settings, LayoutDashboard, 
-  CreditCard, Cpu, Globe, TrendingUp, Zap, Bike, ChevronRight 
+  User, Mail, ShieldCheck, LogOut, Settings, 
+  Cpu, Globe, TrendingUp, Zap, Bike, ChevronRight, Loader2 
 } from "lucide-react";
 import { motion } from "framer-motion";
 import "../styles/Account.css";
 
 export default function Account() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth(); // ✅ Added loading from context
 
   const isAdmin = user?.role === 'admin';
 
@@ -19,6 +19,17 @@ export default function Account() {
     navigate("/login");
   };
 
+  // 🏁 1. SESSION LOADING STATE (Prevents charAt/toUpperCase crashes)
+  if (loading) {
+    return (
+      <div className="account-loader-root">
+        <Loader2 className="animate-spin" size={40} color="#6366f1" />
+        <p>Decrypting Vault Data...</p>
+      </div>
+    );
+  }
+
+  // 🛡️ 2. GUEST REDIRECT (If user is not logged in)
   if (!user) {
     return (
       <div className="account-empty-state">
@@ -64,7 +75,8 @@ export default function Account() {
               <div className="card-bottom-row">
                 <div className="card-holder">
                   <label>CARD HOLDER</label>
-                  <p>{user.name?.toUpperCase()}</p>
+                  {/* ✅ FIXED: Added optional chaining and uppercase fallback */}
+                  <p>{user?.name?.toUpperCase() || "RESERVED"}</p>
                 </div>
                 <div className="card-expiry">
                   <label>EXPIRES</label>
@@ -93,13 +105,14 @@ export default function Account() {
         <div className="account-data-grid">
           <aside className="account-nav-sidebar">
             <div className="sidebar-profile-head">
-              <div className="avatar-hex-large">{user.name?.charAt(0)}</div>
-              <h3>{user.name}</h3>
-              <p>{user.email}</p>
+              {/* ✅ FIXED: Safe initial extraction */}
+              <div className="avatar-hex-large">{user?.name?.charAt(0) || "U"}</div>
+              <h3>{user?.name || "Member"}</h3>
+              <p>{user?.email}</p>
             </div>
             <nav className="sidebar-menu">
               <button className="menu-btn active"><User size={18}/> Profile Details</button>
-              {!isAdmin && <button className="menu-btn"><Bike size={18}/> Trip Ledger</button>}
+              {!isAdmin && <button onClick={() => navigate("/my-bookings")} className="menu-btn"><Bike size={18}/> Trip Ledger</button>}
               <button className="menu-btn"><Settings size={18}/> Secure Settings</button>
               <button onClick={handleLogout} className="menu-btn logout-trigger"><LogOut size={18}/> Terminate Session</button>
             </nav>
@@ -116,7 +129,7 @@ export default function Account() {
                 <Mail size={18} className="icon-slate" />
                 <div className="text-group">
                   <label>Registered Email</label>
-                  <p>{user.email}</p>
+                  <p>{user?.email}</p>
                 </div>
               </div>
 
@@ -137,7 +150,7 @@ export default function Account() {
                     <strong>Admin Access Enabled</strong>
                     <p>You have priority override permissions for fleet management and transaction audits.</p>
                   </div>
-                  <button onClick={() => navigate("/admin")} className="btn-go-admin">
+                  <button onClick={() => navigate("/admin/dashboard")} className="btn-go-admin">
                     Dashboard <ChevronRight size={16} />
                   </button>
                 </motion.div>

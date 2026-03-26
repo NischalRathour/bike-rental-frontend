@@ -8,14 +8,14 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Layouts & Components
-import AdminLayout from "./components/AdminLayout"; 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer"; 
+import AdminLayout from "./components/AdminLayout"; 
 
 // Page Imports
 import Home from "./pages/Home";
 import HireRates from "./pages/HireRates"; 
-import Bikes from "./pages/Bikes";         
+import Bikes from "./pages/Bikes";          
 import Tours from "./pages/Tours"; 
 import Gallery from "./pages/Gallery"; 
 import Blog from "./pages/Blog"; 
@@ -26,33 +26,35 @@ import MyBookings from "./pages/MyBookings";
 import Login from "./pages/Login"; 
 import AdminLogin from "./pages/AdminLogin"; 
 import Register from "./pages/Register";
+import OtpVerification from "./pages/OtpVerification";
 import PaymentPage from "./pages/PaymentPage";
-import Account from "./pages/Account"; // ✅ Added Account Page
+import Account from "./pages/Account"; 
 import CustomerDashboard from './pages/CustomerDashboard';
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBikes from "./pages/AdminBikes"; 
 import AdminUsers from "./pages/AdminUsers"; 
 import AdminBookings from "./pages/AdminBookings"; 
-import BookingConfirmation from "./pages/BookingConfirmation"; // ✅ Ensure this is correct
+import BookingConfirmation from "./pages/BookingConfirmation"; 
 import OwnerDashboard from "./pages/OwnerDashboard"; 
 
-// --- STRIPE INITIALIZATION ---
-// Replace with your real key in .env
+// Stripe Initialization
 const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "pk_test_51SoGdhFOkjXvJLGw4VrVT3ZDm33c0xNtmAJNkyKki45CyNhBWswKYAzjBfpbHC7l5KCOmm2WzBjnCqkbmMRxmDFA001J2tI6Qm";
 const stripePromise = loadStripe(stripeKey);
 
 const AppContent = () => {
   const location = useLocation();
   
-  // Logic to hide Navbar and Footer on Admin pages or Admin Login
-  const showGlobalUI = !location.pathname.startsWith('/admin') && location.pathname !== '/admin-login';
+  // ✅ 1. UI Visibility Logic
+  // Check if we are in admin territory or auth screens to hide/show main Navbar
+  const isAdminPath = location.pathname.startsWith('/admin');
+  const isAuthPath = ['/login', '/register', '/verify-otp', '/admin-login'].includes(location.pathname);
+  const showGlobalUI = !isAdminPath && !isAuthPath;
 
   return (
     <>
-      {/* --- NAVIGATION --- */}
+      {/* Global Navbar shows only on main site/customer pages */}
       {showGlobalUI && <Navbar />}
       
-      {/* --- MAIN CONTENT WRAPPER --- */}
       <Elements stripe={stripePromise}>
         <div className="page-wrapper" style={{ minHeight: '80vh' }}>
           <Routes>
@@ -66,9 +68,10 @@ const AppContent = () => {
             <Route path="/blog" element={<Blog />} />
             <Route path="/contact" element={<Contact />} />
 
-            {/* 🔐 AUTH ROUTES */}
+            {/* 🔐 AUTHENTICATION ROUTES */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-otp" element={<OtpVerification />} />
             <Route path="/admin-login" element={<AdminLogin />} />
 
             {/* 🔴 PROTECTED CUSTOMER ROUTES */}
@@ -79,7 +82,7 @@ const AppContent = () => {
             } />
 
             <Route path="/account" element={
-              <ProtectedRoute allowedRoles={['customer', 'admin']}>
+              <ProtectedRoute allowedRoles={['customer', 'admin', 'owner']}>
                 <Account />
               </ProtectedRoute>
             } />
@@ -90,21 +93,18 @@ const AppContent = () => {
               </ProtectedRoute>
             } />
             
-            {/* Booking Page */}
             <Route path="/book/:id" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <Booking />
               </ProtectedRoute>
             } />
             
-            {/* Payment Page */}
             <Route path="/payment/:bookingId" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <PaymentPage />
               </ProtectedRoute>
             } />
             
-            {/* ✅ FIXED PATH: Changed from /booking-success to /booking-confirmation */}
             <Route path="/booking-confirmation" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <BookingConfirmation />
@@ -118,26 +118,30 @@ const AppContent = () => {
               </ProtectedRoute>
             } />
 
-            {/* 🔴 NESTED ADMIN ROUTES */}
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminLayout /> 
-              </ProtectedRoute>
-            } >
-              <Route index element={<Navigate to="/admin/dashboard" replace />} /> 
-              <Route path="dashboard" element={<AdminDashboard />} /> 
-              <Route path="bikes" element={<AdminBikes />} /> 
-              <Route path="bookings" element={<AdminBookings />} /> 
-              <Route path="users" element={<AdminUsers />} /> 
+            {/* 🔴 PROTECTED ADMIN COMMAND CENTER (Nested Routing) */}
+            {/* The Layout wraps all sub-routes to keep Sidebar persistent */}
+            <Route element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout />
+                </ProtectedRoute>
+            }>
+                {/* Redirect /admin directly to the dashboard */}
+                <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                
+                {/* These components render inside the <Outlet /> of AdminLayout */}
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/bikes" element={<AdminBikes />} />
+                <Route path="/admin/bookings" element={<AdminBookings />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
 
-            {/* 404 Redirect */}
+            {/* 404 CATCH-ALL */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Elements>
 
-      {/* --- PREMIUM FOOTER --- */}
+      {/* Global Footer shows only on main site/customer pages */}
       {showGlobalUI && <Footer />}
     </>
   );

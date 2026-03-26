@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { 
   Camera, User, Mail, Phone, MapPin, 
@@ -11,24 +11,39 @@ import "../styles/Profile.css";
 const Profile = () => {
   const { user, setUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  
+  // ✅ Functional State Management
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    address: user?.address || "Kathmandu, Nepal",
+    name: "",
+    phone: "",
+    address: "",
   });
+
+  // Load user data into form on mount or user change
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        phone: user.phone || "",
+        address: user.address || "Kathmandu, Nepal",
+      });
+    }
+  }, [user]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // ✅ Sync with backend
       const res = await api.put('/users/profile', formData);
+      
       if (res.data.success) {
         alert("Profile synchronized successfully!");
-        // Update local context
-        setUser({ ...user, ...formData });
+        // ✅ Update global context to reflect changes instantly
+        setUser(res.data.user);
       }
     } catch (err) {
-      alert("Update failed. Check your connection.");
+      alert(err.response?.data?.message || "Update failed. Check your connection.");
     } finally {
       setLoading(false);
     }
@@ -40,7 +55,7 @@ const Profile = () => {
         
         {/* 👤 LEFT: IDENTITY PREVIEW */}
         <aside className="identity-card-glass">
-          <Link to="/customer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', textDecoration: 'none', fontWeight: '700', fontSize: '0.85rem', marginBottom: '30px' }}>
+          <Link to="/customer" className="back-link-modern">
             <ChevronLeft size={16}/> Back to Command Center
           </Link>
 
@@ -56,43 +71,46 @@ const Profile = () => {
             </label>
           </div>
 
-          <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: '0' }}>{user?.name}</h2>
-          <p style={{ color: '#64748b', fontWeight: '600', marginTop: '5px' }}>{user?.email}</p>
+          <h2 className="profile-display-name">{user?.name}</h2>
+          <p className="profile-display-email">{user?.email}</p>
           
           <div className="eco-rank-badge">
             <Leaf size={14} /> Eco-Rider: Elite
           </div>
 
-          <div style={{ marginTop: '40px', padding: '25px', background: '#f8fafc', borderRadius: '25px', textAlign: 'left' }}>
-            <p style={{ fontSize: '0.7rem', fontWeight: '800', color: '#94a3b8', marginBottom: '15px' }}>ACCOUNT VERIFICATION</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#0f172a', fontWeight: '700' }}>
-              <ShieldCheck size={20} color="#10b981" /> Verified Member
+          <div className="verification-card-mini">
+            <p className="mini-label">IDENTITY STATUS</p>
+            <div className="mini-value">
+              <ShieldCheck size={20} color="#10b981" /> 
+              Verified {user?.role}
             </div>
           </div>
         </aside>
 
         {/* 🛠️ RIGHT: EDITABLE SETTINGS */}
         <main className="settings-form-box">
-          <h2 className="form-section-title">Account <span style={{ color: '#6366f1' }}>Configuration</span></h2>
+          <h2 className="form-section-title">Account <span className="text-indigo">Configuration</span></h2>
           
-          <form onSubmit={handleUpdate}>
+          <form onSubmit={handleUpdate} className="managed-form-profile">
             <div className="input-grid-premium">
               <div className="input-group-managed">
-                <label><User size={14} style={{ marginRight: '5px' }} /> Full Name</label>
+                <label><User size={14} /> Full Name</label>
                 <input 
                   type="text" 
                   value={formData.name} 
                   onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  required
                 />
               </div>
 
               <div className="input-group-managed">
-                <label><Mail size={14} style={{ marginRight: '5px' }} /> Email Address</label>
-                <input type="email" value={user?.email} disabled style={{ cursor: 'not-allowed', opacity: 0.6 }} />
+                <label><Mail size={14} /> Email Address</label>
+                <input type="email" value={user?.email || ""} disabled className="input-locked" />
+                <span className="input-hint">Email cannot be changed</span>
               </div>
 
               <div className="input-group-managed">
-                <label><Phone size={14} style={{ marginRight: '5px' }} /> Phone Number</label>
+                <label><Phone size={14} /> Phone Number</label>
                 <input 
                   type="text" 
                   placeholder="+977-98XXXXXXXX"
@@ -102,7 +120,7 @@ const Profile = () => {
               </div>
 
               <div className="input-group-managed">
-                <label><MapPin size={14} style={{ marginRight: '5px' }} /> Primary Location</label>
+                <label><MapPin size={14} /> Primary Location</label>
                 <input 
                   type="text" 
                   value={formData.address} 
@@ -111,18 +129,17 @@ const Profile = () => {
               </div>
             </div>
 
-            <div style={{ marginTop: '50px', paddingTop: '30px', borderTop: '1px solid #f1f5f9' }}>
-              <h4 style={{ fontWeight: '800', marginBottom: '15px' }}>Security Preferences</h4>
-              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>To change your password, an authentication link will be sent to your registered email.</p>
-              <button type="button" style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: '800', cursor: 'pointer', padding: 0 }}>Request Password Reset</button>
+            <div className="security-notice-box">
+              <h4>Security Preferences</h4>
+              <p>For password changes or role modifications, please contact Thamel HQ support.</p>
+              <button type="button" className="btn-link-indigo">Request Access Log</button>
             </div>
 
             <button type="submit" className="btn-save-profile" disabled={loading}>
-              {loading ? "Syncing..." : <><Save size={20}/> Save Changes</>}
+              {loading ? "Processing..." : <><Save size={20}/> Save Changes</>}
             </button>
           </form>
         </main>
-
       </div>
     </div>
   );

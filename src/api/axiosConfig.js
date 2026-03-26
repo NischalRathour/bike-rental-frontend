@@ -1,82 +1,64 @@
 import axios from "axios";
 
-/**
- * --- DYNAMIC BASE URL ---
- * Supports production (.env) and local development fallbacks.
- */
-const BASE_URL = process.env.REACT_APP_BACKEND_URL 
-  ? `${process.env.REACT_APP_BACKEND_URL}/api` 
-  : "http://localhost:5000/api";
+// 🌐 Load Backend URL from environment variables
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
-const instance = axios.create({
-  baseURL: BASE_URL,
+const api = axios.create({
+  baseURL: `${API_URL}/api`,
+  withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
 /**
- * --- REQUEST INTERCEPTOR: MULTI-ROLE SECURITY ---
- * Dynamically selects the correct Bearer token based on the API route.
+ * ✅ Unified Request Interceptor
+ * Always uses the same key to ensure the Backend can authorize the Admin node.
  */
-instance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
-    const token_user = localStorage.getItem("token_user");
-    const token_admin = localStorage.getItem("token_admin");
-    const token_owner = localStorage.getItem("token_owner");
+    // 🚩 FIX: Stop checking multiple keys. Use the unified one we set in AuthContext.
+    const token = localStorage.getItem("token_ride_roar");
 
-    const url = config.url || "";
-
-    // 🛡️ ROLE-BASED TOKEN INJECTION
-    // Priority 1: Admin Routes
-    if (token_admin && (url.includes("admin") || url.includes("insights"))) {
-      config.headers.Authorization = `Bearer ${token_admin}`;
-      console.log(`📡 [Admin Request]: ${url}`);
-    } 
-    // Priority 2: Owner Routes
-    else if (token_owner && (url.includes("owner") || url.includes("bikes/owner"))) {
-      config.headers.Authorization = `Bearer ${token_owner}`;
-      console.log(`📡 [Owner Request]: ${url}`);
-    } 
-    // Priority 3: Standard User Routes
-    else if (token_user) {
-      config.headers.Authorization = `Bearer ${token_user}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
-  (error) => Promise.reject(error)
-);
-
-/**
- * --- RESPONSE INTERCEPTOR: GLOBAL ERROR HANDLING ---
- * Automatically handles 401/403 (Unauthorized) by clearing local storage and redirecting.
- */
-instance.interceptors.response.use(
-  (response) => response,
   (error) => {
-    const status = error.response ? error.response.status : null;
-    const message = error.response?.data?.message || "Server Error";
-
-    if (status === 401 || status === 403) {
-      console.error(`🔒 Security Alert [${status}]: ${message}`);
-
-      // Smart Redirect Logic
-      const is_admin_path = window.location.pathname.startsWith('/admin');
-
-      if (is_admin_path) {
-        localStorage.removeItem("token_admin");
-        localStorage.removeItem("adminUser");
-        window.location.href = "/admin-login"; 
-      } else {
-        localStorage.removeItem("token_user");
-        localStorage.removeItem("userInfo");
-        localStorage.removeItem("token_owner");
-        window.location.href = "/login";
-      }
-    }
-
-    // Pass the error back so the Component can handle the 500 error display
     return Promise.reject(error);
   }
 );
 
-export default instance;
+/**
+ * ✅ Global Response Interceptor
+ * Handles session expiration and unauthorized access.
+ */
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // 401: Unauthorized / Token Expired
+    if (error.response?.status === 401) {
+      console.warn("🔐 Session Expired or Unauthorized. Wiping vault...");
+      
+      const isAdminPath = window.location.pathname.startsWith('/admin');
+      
+      // Clear storage to prevent "Undefined Role" loops
+      localStorage.clear();
+      
+      // Redirect based on where the user was trying to go
+      if (isAdminPath) {
+        window.location.href = "/admin-login";
+      } else {
+        window.location.href = "/login";
+      }
+    }
+    
+    // 403: Forbidden (Authenticated but wrong role)
+    if (error.response?.status === 403) {
+      console.error("🚫 Access Denied: Insufficient Permissions.");
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default api;
