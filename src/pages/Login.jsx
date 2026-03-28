@@ -13,7 +13,6 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔄 AUTO-REDIRECT: If user is already logged in, send them to their dashboard
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') navigate('/admin/dashboard');
@@ -24,7 +23,7 @@ const Login = () => {
 
   const handleChange = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
-    if (error) setError(""); // Clear error when typing
+    if (error) setError(""); 
   };
 
   const handleSubmit = async (e) => {
@@ -33,9 +32,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await api.post("/users/login", input); 
+      const cleanInput = {
+        email: input.email.toLowerCase().trim(),
+        password: input.password
+      };
 
-      // ✅ 1. Check for OTP (Customers usually)
+      const res = await api.post("/users/login", cleanInput); 
+
       if (res.data.requiresOTP) {
         navigate("/verify-otp", { 
           state: { email: res.data.email, requiresOTP: true } 
@@ -43,26 +46,20 @@ const Login = () => {
         return;
       }
 
-      // ✅ 2. DIRECT LOGIN (Admin bypass or already verified customers)
       if (res.data.success) {
-        const { token, user: userData } = res.data;
+        login(res.data.user, res.data.token);
         
-        // Save to Context & LocalStorage
-        login(userData, token);
-
-        // 🚀 SMART ROUTING BASED ON ROLE
-        if (userData.role === 'admin') {
-           // We use window.location.href for Admin to ensure a clean session load
+        const role = res.data.user.role;
+        if (role === 'admin') {
            window.location.href = '/admin/dashboard';
-        } else if (userData.role === 'owner') {
-          navigate('/owner-dashboard');
+        } else if (role === 'owner') {
+           navigate('/owner-dashboard');
         } else {
-          navigate('/customer');
+           navigate('/customer');
         }
       }
 
     } catch (err) {
-      // Handle "Not Verified" error
       if (err.response?.data?.needsVerification) {
         navigate("/verify-otp", { state: { email: input.email, requiresOTP: false } });
       } else {
@@ -85,11 +82,7 @@ const Login = () => {
         </div>
 
         <div className="auth-form-side">
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }} 
-            animate={{ opacity: 1, x: 0 }} 
-            className="form-container-managed"
-          >
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="form-container-managed">
             <h1>Login</h1>
             <form onSubmit={handleSubmit} className="managed-form">
               <div className="m-input-group">
@@ -101,7 +94,10 @@ const Login = () => {
               </div>
 
               <div className="m-input-group">
-                <label>Password</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label>Password</label>
+                  <Link to="/forgot-password" style={{ fontSize: '12px', color: '#6366f1', textDecoration: 'none' }}>Forgot Password?</Link>
+                </div>
                 <div className="input-with-icon">
                   <Lock size={18} className="i-icon" />
                   <input type="password" name="password" value={input.password} onChange={handleChange} required placeholder="••••••••" />
@@ -111,8 +107,7 @@ const Login = () => {
               {error && <div className="m-error-box">{error}</div>}
 
               <button type="submit" className="btn-auth-primary" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin" size={18} /> : "Login to Account"} 
-                {!loading && <LogIn size={18} />}
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <>Login <LogIn size={18} /></>}
               </button>
             </form>
             <p className="auth-footer-modern">New here? <Link to="/register">Create an account</Link></p>

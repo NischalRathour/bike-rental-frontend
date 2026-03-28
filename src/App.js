@@ -2,9 +2,10 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { AlertTriangle, LogOut, RefreshCw, XCircle } from "lucide-react";
 
 // Logic & Context
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Layouts & Components
@@ -27,6 +28,7 @@ import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin"; 
 import Register from "./pages/Register";
 import OtpVerification from "./pages/OtpVerification";
+import ForgotPassword from "./pages/ForgotPassword"; 
 import PaymentPage from "./pages/PaymentPage";
 import Account from "./pages/Account"; 
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -37,28 +39,67 @@ import AdminBookings from "./pages/AdminBookings";
 import BookingConfirmation from "./pages/BookingConfirmation"; 
 import OwnerDashboard from "./pages/OwnerDashboard"; 
 
-// Stripe Initialization
-const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "pk_test_51SoGdhFOkjXvJLGw4VrVT3ZDm33c0xNtmAJNkyKki45CyNhBWswKYAzjBfpbHC7l5KCOmm2WzBjnCqkbmMRxmDFA001J2tI6Qm";
+const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "your_stripe_key_here";
 const stripePromise = loadStripe(stripeKey);
 
 const AppContent = () => {
   const location = useLocation();
+  const { showTimeoutWarning, sessionExpired, logout } = useAuth();
   
-  // ✅ 1. UI Visibility Logic
-  // Check if we are in admin territory or auth screens to hide/show main Navbar
   const isAdminPath = location.pathname.startsWith('/admin');
-  const isAuthPath = ['/login', '/register', '/verify-otp', '/admin-login'].includes(location.pathname);
+  const isAuthPath = ['/login', '/register', '/verify-otp', '/admin-login', '/forgot-password'].includes(location.pathname);
   const showGlobalUI = !isAdminPath && !isAuthPath;
 
   return (
     <>
-      {/* Global Navbar shows only on main site/customer pages */}
+      {/* 🛑 SESSION EXPIRED TOAST (When user is kicked out) */}
+      {sessionExpired && (
+        <div style={{
+          position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 10001, background: '#1e293b', color: '#fff', padding: '12px 25px',
+          borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '15px',
+          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.4)', border: '1px solid #334155'
+        }}>
+          <XCircle color="#ef4444" size={20} />
+          <span style={{ fontSize: '14px', fontWeight: '500' }}>Your session has expired. Please login again.</span>
+          <button 
+            onClick={() => logout(true)} 
+            style={{ background: '#6366f1', border: 'none', color: '#fff', padding: '6px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
+          >
+            Go to Login
+          </button>
+        </div>
+      )}
+
+      {/* 🚨 GLOBAL SESSION TIMEOUT WARNING (60s before expiry) */}
+      {showTimeoutWarning && !sessionExpired && (
+        <div style={{
+          position: 'fixed', top: '25px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 10000, background: '#fff', padding: '16px 24px', borderRadius: '12px',
+          boxShadow: '0 15px 40px rgba(0,0,0,0.2)', borderLeft: '6px solid #ef4444',
+          display: 'flex', alignItems: 'center', gap: '20px', minWidth: '350px'
+        }}>
+          <AlertTriangle color="#ef4444" size={28} />
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>Session Expiring</p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Less than 1 minute remaining. Please extend your session.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => window.location.reload()} style={{ background: '#6366f1', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+              <RefreshCw size={14} /> Extend
+            </button>
+            <button onClick={() => logout(true)} style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+              <LogOut size={14} /> Logout
+            </button>
+          </div>
+        </div>
+      )}
+
       {showGlobalUI && <Navbar />}
       
       <Elements stripe={stripePromise}>
         <div className="page-wrapper" style={{ minHeight: '80vh' }}>
           <Routes>
-            {/* 🟢 PUBLIC ROUTES */}
             <Route path="/" element={<Home />} />
             <Route path="/hire-rates" element={<HireRates />} /> 
             <Route path="/bikes" element={<Bikes />} /> 
@@ -68,80 +109,33 @@ const AppContent = () => {
             <Route path="/blog" element={<Blog />} />
             <Route path="/contact" element={<Contact />} />
 
-            {/* 🔐 AUTHENTICATION ROUTES */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-otp" element={<OtpVerification />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin-login" element={<AdminLogin />} />
 
-            {/* 🔴 PROTECTED CUSTOMER ROUTES */}
-            <Route path="/customer" element={
-              <ProtectedRoute allowedRoles={['customer', 'admin']}>
-                <CustomerDashboard />
-              </ProtectedRoute>
-            } />
+            <Route path="/customer" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><CustomerDashboard /></ProtectedRoute>} />
+            <Route path="/account" element={<ProtectedRoute allowedRoles={['customer', 'admin', 'owner']}><Account /></ProtectedRoute>} />
+            <Route path="/my-bookings" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><MyBookings /></ProtectedRoute>} />
+            <Route path="/book/:id" element={<ProtectedRoute allowedRoles={['customer']}><Booking /></ProtectedRoute>} />
+            <Route path="/payment/:bookingId" element={<ProtectedRoute allowedRoles={['customer']}><PaymentPage /></ProtectedRoute>} />
+            <Route path="/booking-confirmation" element={<ProtectedRoute allowedRoles={['customer']}><BookingConfirmation /></ProtectedRoute>} />
+            <Route path="/owner-dashboard" element={<ProtectedRoute allowedRoles={['owner']}><OwnerDashboard /></ProtectedRoute>} />
 
-            <Route path="/account" element={
-              <ProtectedRoute allowedRoles={['customer', 'admin', 'owner']}>
-                <Account />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/my-bookings" element={
-              <ProtectedRoute allowedRoles={['customer', 'admin']}>
-                <MyBookings />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/book/:id" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <Booking />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/payment/:bookingId" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <PaymentPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/booking-confirmation" element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <BookingConfirmation />
-              </ProtectedRoute>
-            } />
-
-            {/* 🔵 PROTECTED OWNER ROUTES */}
-            <Route path="/owner-dashboard" element={
-              <ProtectedRoute allowedRoles={['owner']}>
-                <OwnerDashboard />
-              </ProtectedRoute>
-            } />
-
-            {/* 🔴 PROTECTED ADMIN COMMAND CENTER (Nested Routing) */}
-            {/* The Layout wraps all sub-routes to keep Sidebar persistent */}
-            <Route element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminLayout />
-                </ProtectedRoute>
-            }>
-                {/* Redirect /admin directly to the dashboard */}
+            <Route element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
                 <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-                
-                {/* These components render inside the <Outlet /> of AdminLayout */}
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/bikes" element={<AdminBikes />} />
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
 
-            {/* 404 CATCH-ALL */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Elements>
 
-      {/* Global Footer shows only on main site/customer pages */}
       {showGlobalUI && <Footer />}
     </>
   );

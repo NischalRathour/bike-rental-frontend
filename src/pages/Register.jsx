@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import api from "../api/axiosConfig";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import "../styles/Register.css";
 
 const Register = () => {
@@ -15,10 +16,15 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
-      const response = await api.post("/users/register", input);
+      const response = await api.post("/users/register", {
+        ...input,
+        email: input.email.toLowerCase().trim()
+      });
       if (response.data.success) {
-        navigate("/verify-otp", { state: { email: input.email } });
+        // Pass requiresOTP: false because this is account activation, not 2FA login
+        navigate("/verify-otp", { state: { email: input.email, requiresOTP: false } });
       }
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed.");
@@ -30,26 +36,66 @@ const Register = () => {
       <div className="auth-split-layout">
         <div className="auth-visual-side">
           <div className="auth-overlay"></div>
-          <img src="/images/moving-bike.jpg" alt="Ride Nepal" className="auth-bg-img" />
           <div className="auth-welcome-text">
-            <h2>Join the Community</h2>
-            <p>Nepal's premium bike fleet awaits.</p>
+            <ShieldCheck size={40} color="#6366f1" />
+            <h2>Join the Fleet.</h2>
+            <p>Nepal's premium bike marketplace awaits.</p>
           </div>
         </div>
+
         <div className="auth-form-side">
-          <div className="form-container-managed">
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="form-container-managed">
             <h1>Create Account</h1>
+            <p className="subtitle">Join as a Renter or a Bike Owner</p>
+
             <form onSubmit={handleSubmit} className="managed-form">
-              <input type="text" name="name" placeholder="Name" onChange={handleChange} required />
-              <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-              <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-              {error && <p className="m-error-box">{error}</p>}
-              <button type="submit" disabled={loading}>{loading ? "Sending OTP..." : "Register Now"}</button>
+              <div className="m-input-group">
+                <label>Full Name</label>
+                <div className="input-with-icon">
+                  <User size={18} className="i-icon" />
+                  <input type="text" name="name" placeholder="John Doe" onChange={handleChange} required />
+                </div>
+              </div>
+
+              <div className="m-input-group">
+                <label>Email Address</label>
+                <div className="input-with-icon">
+                  <Mail size={18} className="i-icon" />
+                  <input type="email" name="email" placeholder="john@example.com" onChange={handleChange} required />
+                </div>
+              </div>
+
+              <div className="m-input-group">
+                <label>Join Ride N Roar as a:</label>
+                <select name="role" value={input.role} onChange={handleChange} className="role-selector-premium">
+                  <option value="customer">Renter (Customer)</option>
+                  <option value="owner">Bike Owner (Partner)</option>
+                </select>
+              </div>
+
+              <div className="m-input-group">
+                <label>Secure Password</label>
+                <div className="input-with-icon">
+                  <Lock size={18} className="i-icon" />
+                  <input type="password" name="password" placeholder="Min 6 characters" onChange={handleChange} required minLength="6" />
+                </div>
+              </div>
+
+              {error && <div className="m-error-box">{error}</div>}
+
+              <button type="submit" className="btn-auth-primary" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <>Register Now <ArrowRight size={18} /></>}
+              </button>
             </form>
-          </div>
+
+            <div className="auth-footer-modern">
+              <p>Already have an account? <Link to="/login">Login here</Link></p>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
   );
 };
+
 export default Register;

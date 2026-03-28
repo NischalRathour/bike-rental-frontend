@@ -1,6 +1,9 @@
 import axios from "axios";
 
-// 🌐 Load Backend URL from environment variables
+/**
+ * 🌐 BACKEND CONNECTIVITY
+ * Loads the URL from .env or defaults to local development port.
+ */
 const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 const api = axios.create({
@@ -10,12 +13,12 @@ const api = axios.create({
 });
 
 /**
- * ✅ Unified Request Interceptor
- * Always uses the same key to ensure the Backend can authorize the Admin node.
+ * ✅ UNIFIED REQUEST INTERCEPTOR
+ * Attaches the 'Ride N Roar' token to every outgoing request.
  */
 api.interceptors.request.use(
   (config) => {
-    // 🚩 FIX: Stop checking multiple keys. Use the unified one we set in AuthContext.
+    // Retrieve the token saved during login
     const token = localStorage.getItem("token_ride_roar");
 
     if (token) {
@@ -29,32 +32,21 @@ api.interceptors.request.use(
 );
 
 /**
- * ✅ Global Response Interceptor
- * Handles session expiration and unauthorized access.
+ * ✅ GLOBAL RESPONSE INTERCEPTOR
+ * Handles auth errors like 401 (Expired) and 403 (Forbidden).
  */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 401: Unauthorized / Token Expired
-    if (error.response?.status === 401) {
-      console.warn("🔐 Session Expired or Unauthorized. Wiping vault...");
-      
-      const isAdminPath = window.location.pathname.startsWith('/admin');
-      
-      // Clear storage to prevent "Undefined Role" loops
-      localStorage.clear();
-      
-      // Redirect based on where the user was trying to go
-      if (isAdminPath) {
-        window.location.href = "/admin-login";
-      } else {
-        window.location.href = "/login";
-      }
+    const status = error.response?.status;
+
+    if (status === 401) {
+      console.warn("🔐 Session Expired or Unauthorized.");
+      // Note: AuthContext handles the redirect logic based on this 401
     }
     
-    // 403: Forbidden (Authenticated but wrong role)
-    if (error.response?.status === 403) {
-      console.error("🚫 Access Denied: Insufficient Permissions.");
+    if (status === 403) {
+      console.error("🚫 Access Denied: Permissions insufficient for this role.");
     }
 
     return Promise.reject(error);

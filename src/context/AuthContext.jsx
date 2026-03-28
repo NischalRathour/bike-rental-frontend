@@ -1,11 +1,14 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import api from '../api/axiosConfig';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const hydrateSession = async () => {
     const token = localStorage.getItem('token_ride_roar');
@@ -32,50 +35,75 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('userRole', freshUserData.role.toLowerCase());
         }
       } catch (err) {
-        if (err.response?.status === 401) logout();
+        if (err.response?.status === 401) {
+          setSessionExpired(true);
+          logout(false); // Logout state but don't redirect yet
+        }
       }
     }
     setLoading(false);
   };
 
+  /**
+   * ⏱️ SESSION WATCHER
+   */
   useEffect(() => {
+    const checkTokenExpiry = () => {
+      const token = localStorage.getItem('token_ride_roar');
+      if (!token) return;
+
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        const timeLeft = decoded.exp - currentTime;
+
+        // 🚨 Warning at 60 seconds
+        if (timeLeft > 0 && timeLeft < 60) {
+          setShowTimeoutWarning(true);
+        } else {
+          setShowTimeoutWarning(false);
+        }
+
+        // 🚪 Expiry at 0 seconds
+        if (timeLeft <= 0) {
+          setSessionExpired(true);
+          logout(false);
+        }
+      } catch (err) {
+        console.error("Session monitor error:", err);
+      }
+    };
+
     hydrateSession();
+    
+    const interval = setInterval(checkTokenExpiry, 15000);
+    return () => clearInterval(interval);
   }, []);
 
-  /**
-   * 🔑 LOGIN (The "Loop Killer" Version)
-   */
   const login = (userData, token) => {
-    if (!userData || !userData.role) {
-      return console.error("🚨 LOGIN REJECTED: Missing role.");
-    }
+    if (!userData || !userData.role) return;
 
-    // ✅ 1. Standardize Role (Forces 'admin', 'customer', etc.)
     const role = userData.role.toLowerCase();
     const normalizedUser = { ...userData, role };
 
-    // ✅ 2. IMMEDIATE STORAGE LOCK
-    // We save these BEFORE updating state so ProtectedRoute can see them instantly
     localStorage.setItem('token_ride_roar', token);
     localStorage.setItem('userInfo', JSON.stringify(normalizedUser));
     localStorage.setItem('userRole', role); 
     
-    // ✅ 3. Update React State
     setUser(normalizedUser);
-
-    console.log(`✅ Vault Access Granted: [${role.toUpperCase()}]`);
+    setSessionExpired(false);
+    setShowTimeoutWarning(false);
   };
 
-  /**
-   * 🚪 LOGOUT
-   */
-  const logout = () => {
-    const isAdmin = user?.role === 'admin' || localStorage.getItem('userRole') === 'admin';
+  const logout = (shouldRedirect = true) => {
+    const role = user?.role || localStorage.getItem('userRole');
     localStorage.clear();
     setUser(null);
+    setShowTimeoutWarning(false);
     
-    // ✅ Use a Hard Redirect to clear all stale memory
-    window.location.href = isAdmin ? '/admin-login' : '/login';
+    if (shouldRedirect) {
+      window.location.href = role === 'admin' ? '/admin-login' : '/login';
+    }
   };
 
   return (
@@ -84,6 +112,9 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout, 
       loading, 
+      showTimeoutWarning,
+      sessionExpired,
+      setSessionExpired,
       isAuthenticated: !!user,
       isAdmin: (user?.role === 'admin' || localStorage.getItem('userRole') === 'admin'),
       isOwner: (user?.role === 'owner' || localStorage.getItem('userRole') === 'owner')
@@ -93,8 +124,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
