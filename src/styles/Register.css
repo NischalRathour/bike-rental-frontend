@@ -1,79 +1,157 @@
+/* ============================================================
+   🚀 RIDE N ROAR - ELITE MARKETPLACE AUTH UI
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-  --primary-blue: #2563eb;
-  --text-dark: #111827;
+  --brand-primary: #6366f1;
+  --brand-secondary: #4f46e5;
+  --dark-base: #0f172a;
   --text-muted: #64748b;
-  --border: #e2e8f0;
+  --glass: rgba(255, 255, 255, 0.03);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --curve: 24px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .auth-page-wrapper {
-  height: 100vh;
-  width: 100%;
-  background: #ffffff;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  background-color: #ffffff;
 }
 
 .auth-split-layout {
   display: flex;
-  height: 100%;
+  width: 100%;
 }
 
-/* --- VISUAL SIDE (LEFT) --- */
+/* --- 🎭 THE VISUAL EXPERIENCE (LEFT SIDE) --- */
 .auth-visual-side {
-  flex: 1;
+  flex: 1.3;
   position: relative;
-  overflow: hidden;
+  background: var(--dark-base);
   display: flex;
   align-items: center;
-  padding: 60px;
-  color: white;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.auth-bg-img {
+/* Dynamic Animated Background Glows */
+.auth-visual-side::before, .auth-visual-side::after {
+  content: "";
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  object-fit: cover;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(80px);
   z-index: 1;
+}
+
+.auth-visual-side::before {
+  background: rgba(99, 102, 241, 0.15);
+  top: -10%;
+  left: -10%;
+}
+
+.auth-visual-side::after {
+  background: rgba(79, 70, 229, 0.1);
+  bottom: -10%;
+  right: -10%;
 }
 
 .auth-overlay {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.9));
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
   z-index: 2;
 }
 
 .auth-welcome-text {
   position: relative;
   z-index: 10;
-  max-width: 400px;
+  text-align: left;
+  padding: 60px;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--curve);
+  max-width: 520px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.4);
 }
 
-.auth-welcome-text h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; }
-.auth-welcome-text p { font-size: 1.1rem; opacity: 0.9; line-height: 1.6; }
+.auth-welcome-text h2 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  margin: 25px 0;
+  letter-spacing: -2px;
+}
 
-.auth-feature-list { margin-top: 40px; }
-.auth-f-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-weight: 600; font-size: 0.9rem; }
+.auth-welcome-text p {
+  font-size: 1.2rem;
+  color: #94a3b8;
+  line-height: 1.7;
+}
 
-/* --- FORM SIDE (RIGHT) --- */
+/* --- 📝 THE FORMSCAPE (RIGHT SIDE) --- */
 .auth-form-side {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  padding: 60px;
+  background: #ffffff;
 }
 
 .form-container-managed {
   width: 100%;
-  max-width: 420px;
-  padding: 40px;
+  max-width: 440px;
 }
 
-.auth-header-modern h1 { font-size: 2rem; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
-.auth-header-modern p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; }
+.form-container-managed h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--dark-base);
+  letter-spacing: -1px;
+}
 
-.m-input-group { margin-bottom: 20px; }
-.m-input-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
+.subtitle {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 8px;
+  margin-bottom: 45px;
+}
+
+/* --- 💎 ADVANCED FORM INPUTS --- */
+.managed-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.m-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-input-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--dark-base);
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
 
 .input-with-icon {
   position: relative;
@@ -81,59 +159,131 @@
   align-items: center;
 }
 
-.i-icon { position: absolute; left: 15px; color: var(--text-muted); }
-
-.input-with-icon input {
-  width: 100%;
-  padding: 14px 14px 14px 45px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 0.95rem;
-  transition: 0.3s;
+.i-icon {
+  position: absolute;
+  left: 20px;
+  color: #94a3b8;
+  transition: all 0.3s ease;
 }
 
-.input-with-icon input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+.input-with-icon input, 
+.role-selector-premium {
+  width: 100%;
+  padding: 18px 20px 18px 55px;
+  border-radius: 16px;
+  border: 2px solid #f1f5f9;
+  background: #f8fafc;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--dark-base);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-with-icon input::placeholder {
+  color: #cbd5e1;
+}
+
+.input-with-icon input:focus, 
+.role-selector-premium:focus {
   outline: none;
+  background: #ffffff;
+  border-color: var(--brand-primary);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+  transform: translateY(-2px);
 }
 
+.input-with-icon input:focus + .i-icon {
+  color: var(--brand-primary);
+}
+
+/* --- 🎭 THE ROLE SELECTOR --- */
+.role-selector-premium {
+  padding-left: 20px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+  background-size: 18px;
+}
+
+/* --- 🚀 PREMIUM ACTION BUTTON --- */
 .btn-auth-primary {
-  width: 100%;
-  padding: 16px;
-  background: var(--primary-blue);
-  color: white;
+  margin-top: 15px;
+  height: 64px;
+  border-radius: 18px;
   border: none;
-  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  color: white;
+  font-size: 1.1rem;
   font-weight: 700;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: 0.3s;
+  gap: 12px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.4);
 }
 
 .btn-auth-primary:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 25px 50px -10px rgba(99, 102, 241, 0.6);
 }
 
-.m-error-box {
-  background: #fef2f2;
-  color: #ef4444;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  margin-bottom: 20px;
-  border: 1px solid #fee2e2;
+.btn-auth-primary:active {
+  transform: translateY(0) scale(1);
 }
 
-.auth-footer-modern { margin-top: 25px; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
-.auth-footer-modern a { color: var(--primary-blue); font-weight: 700; text-decoration: none; }
+/* --- 🔗 AUTH FOOTER --- */
+.auth-footer-modern {
+  margin-top: 40px;
+  text-align: center;
+  padding-top: 25px;
+  border-top: 1px solid #f1f5f9;
+}
 
-/* RESPONSIVE */
-@media (max-width: 992px) {
-  .auth-visual-side { display: none; }
+.auth-footer-modern p {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.auth-footer-modern a {
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 6px;
+  position: relative;
+}
+
+.auth-footer-modern a::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background: var(--brand-primary);
+  transition: width 0.3s ease;
+}
+
+.auth-footer-modern a:hover::after {
+  width: 100%;
+}
+
+/* --- 📱 RESPONSIVE ADAPTATION --- */
+@media (max-width: 1100px) {
+  .auth-visual-side {
+    display: none;
+  }
+  .auth-form-side {
+    padding: 40px 20px;
+    background: #f8fafc;
+  }
+  .form-container-managed {
+    background: white;
+    padding: 50px 40px;
+    border-radius: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+  }
 }

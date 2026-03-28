@@ -1,9 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --neon-indigo: #6366f1;
-  --deep-slate: #0f172a;
-  --glass-white: rgba(255, 255, 255, 0.9);
+  --primary-indigo: #6366f1;
+  --dark-slate: #0f172a;
   --emerald: #10b981;
 }
 
@@ -17,124 +16,122 @@
   overflow: hidden;
 }
 
-/* --- HEADER FIX (SLIM & PRO) --- */
+/* --- HEADER CONTAINER --- */
 .booking-v2-header {
-  height: 80px;
+  height: 90px;
   background: white;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 4%;
-  z-index: 1000;
+  padding: 0 5%;
+  position: relative; 
+  z-index: 100;
 }
 
-.header-left { display: flex; align-items: center; gap: 20px; }
-.text-glow { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; margin: 0; }
-.text-indigo { color: var(--neon-indigo); }
-
-.live-node-tag {
-  background: #f1f5f9;
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 6px 12px;
-  border-radius: 100px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pulse-dot { width: 6px; height: 6px; background: var(--emerald); border-radius: 50%; animation: pulse 1.5s infinite; }
-
-/* --- DATE PICKER ENGINE --- */
+/* --- THE DATE PICKER (CENTERED & CLICKABLE) --- */
 .date-orchestrator {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #f1f5f9;
-  padding: 8px 16px;
-  border-radius: 14px;
+  gap: 15px;
+  background: #ffffff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  
+  /* MOVES IT TO CENTER */
+  position: absolute; 
+  left: 50%;
+  transform: translateX(-50%); 
+  
+  /* FIXES CLICKING ISSUE */
+  z-index: 9999 !important; 
+  pointer-events: all !important;
+  border: 2.5px solid var(--primary-indigo);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
 }
 
-.date-chip input { border: none; background: transparent; font-weight: 700; font-size: 0.8rem; outline: none; cursor: pointer; }
+.date-chip { display: flex; align-items: center; gap: 10px; }
 
-/* --- MAIN HORIZONTAL LAYOUT --- */
-.booking-v2-layout {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  flex: 1;
-  overflow: hidden;
+.date-chip input {
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  color: var(--dark-slate);
+  min-width: 130px;
+  padding: 5px;
 }
 
-.fleet-grid-section {
-  padding: 40px 4%;
-  overflow-y: auto;
-  background: #f8fafc;
-}
+.date-chip svg { color: var(--primary-indigo); pointer-events: none; }
 
-.section-intro h2 { font-size: 2rem; font-weight: 800; margin: 0; color: var(--deep-slate); }
-.section-intro p { color: #64748b; margin: 10px 0 30px; }
+.header-spacer { width: 250px; } /* Balances the header flexbox */
 
-/* --- PREMIUM HORIZONTAL CARDS --- */
-.premium-bike-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+/* --- LAYOUT --- */
+.booking-v2-layout { display: grid; grid-template-columns: 1fr 420px; flex: 1; overflow: hidden; }
+
+.fleet-grid-section { padding: 40px 5%; overflow-y: auto; background: #fbfcfe; }
+.section-intro h2 { font-size: 2.2rem; font-weight: 800; color: var(--dark-slate); margin-bottom: 5px; }
+.section-intro p { color: #64748b; margin-bottom: 35px; }
+
+/* --- CARDS --- */
+.premium-bike-grid { display: flex; flex-direction: column; gap: 20px; }
 
 .bike-v2-card {
   background: white;
-  border-radius: 24px;
+  border-radius: 28px;
   display: flex;
-  padding: 15px;
-  gap: 20px;
-  border: 1px solid #e2e8f0;
+  padding: 20px;
+  gap: 25px;
+  border: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.bike-v2-card:hover { border-color: var(--neon-indigo); transform: translateX(10px); }
-.bike-v2-card.selected { background: #f5f3ff; border-color: var(--neon-indigo); }
+.bike-v2-card:hover { border-color: var(--primary-indigo); transform: translateX(10px); }
+.bike-v2-card.selected { background: #fefeff; border-color: var(--primary-indigo); }
 
-.card-media-box { width: 220px; height: 140px; border-radius: 16px; overflow: hidden; position: relative; flex-shrink: 0; }
+.card-media-box { width: 240px; height: 160px; border-radius: 20px; overflow: hidden; position: relative; flex-shrink: 0; }
 .card-media-box img { width: 100%; height: 100%; object-fit: cover; }
-.category-pill { position: absolute; bottom: 10px; left: 10px; background: var(--deep-slate); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 800; }
+.category-pill { position: absolute; bottom: 12px; left: 12px; background: rgba(15, 23, 42, 0.8); color: white; padding: 6px 12px; border-radius: 10px; font-size: 0.65rem; font-weight: 700; }
 
 .card-info-box { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-.card-header-row { display: flex; justify-content: space-between; align-items: flex-start; }
-.card-header-row h3 { margin: 0; font-size: 1.2rem; font-weight: 800; }
-.check-badge { background: var(--neon-indigo); color: white; padding: 4px; border-radius: 50%; }
+.card-header-row h3 { margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--dark-slate); }
+.check-badge { background: var(--primary-indigo); color: white; padding: 5px; border-radius: 50%; display: flex; }
 
-.spec-row-mini { display: flex; gap: 15px; color: #94a3b8; font-size: 0.75rem; font-weight: 600; }
+.spec-row-mini { display: flex; gap: 20px; color: #94a3b8; font-size: 0.85rem; font-weight: 600; }
 
 .price-footer-v2 { display: flex; justify-content: space-between; align-items: center; }
-.price-tag-v2 .val { font-size: 1.4rem; font-weight: 800; color: var(--neon-indigo); }
-.select-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
-.selected .select-btn { background: var(--neon-indigo); color: white; }
+.price-tag-v2 .val { font-size: 1.6rem; font-weight: 900; color: var(--primary-indigo); }
+.price-tag-v2 .unit { font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
 
-/* --- SIDEBAR LEDGER --- */
-.expedition-sidebar {
-  background: var(--deep-slate);
-  color: white;
-  padding: 40px 30px;
-  display: flex;
-  flex-direction: column;
-}
+.select-btn { background: #f1f5f9; border: none; padding: 10px 20px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; transition: 0.3s; }
+.selected .select-btn { background: var(--primary-indigo); color: white; }
 
-.sidebar-head h3 { font-size: 1.4rem; font-weight: 800; margin: 0; }
-.sidebar-head p { color: #64748b; font-size: 0.8rem; margin: 5px 0 0; }
+/* --- SIDEBAR --- */
+.expedition-sidebar { background: var(--dark-slate); color: white; padding: 40px; display: flex; flex-direction: column; }
+.sidebar-head h3 { font-size: 1.6rem; font-weight: 800; }
+.sidebar-head p { color: #94a3b8; font-size: 0.85rem; margin-top: 5px; }
 
-.ledger-scroll-area { flex: 1; margin: 30px 0; overflow-y: auto; padding-right: 5px; }
-.ledger-pill { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-.ledger-unit { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 0.85rem; }
+.ledger-scroll-area { flex: 1; margin: 35px 0; overflow-y: auto; padding-right: 10px; }
+.ledger-pill { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.04); padding: 18px; border-radius: 16px; margin-bottom: 12px; }
+.ledger-unit { display: flex; align-items: center; gap: 15px; font-weight: 700; font-size: 0.95rem; }
 .u-del { color: #f43f5e; cursor: pointer; }
 
-.calculation-stack { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 25px; }
-.calc-item { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; color: #94a3b8; }
-.grand-total-box label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; }
-.grand-total-box h2 { font-size: 2.2rem; color: var(--neon-indigo); margin: 5px 0 20px; }
+.calculation-stack { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; }
+.calc-item { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 12px; color: #94a3b8; }
+.grand-total-box label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 800; }
+.grand-total-box h2 { font-size: 2.6rem; color: var(--primary-indigo); margin: 8px 0 30px; letter-spacing: -1px; }
 
-.btn-finalize { width: 100%; padding: 20px; background: var(--neon-indigo); color: white; border: none; border-radius: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
+.btn-finalize { width: 100%; padding: 22px; background: var(--primary-indigo); color: white; border: none; border-radius: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; font-size: 1.05rem; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2); }
 
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+/* --- MODAL & LOADING --- */
+.modal-overlay-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.error-modal-card { background: white; padding: 50px; border-radius: 40px; text-align: center; color: var(--dark-slate); max-width: 440px; }
+.modal-icon-wrap { width: 60px; height: 60px; background: #fff1f2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.btn-modal-close { background: var(--dark-slate); color: white; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 800; margin-top: 30px; cursor: pointer; }
 
-/* --- MODALS & LOADER --- */
-.modal-overlay-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-.error-modal-card { background: #1e293b; padding: 40px; border-radius: 30px; text-align: center; color: white; max-width: 400px; }
-.btn-modal-close { background: white; color: var(--deep-slate); border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; margin-top: 20px; cursor: pointer; }
+.booking-loading-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fbfcfe; gap: 20px; }
+.loader-pulse { width: 50px; height: 50px; border: 4px solid #f1f5f9; border-top-color: var(--primary-indigo); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

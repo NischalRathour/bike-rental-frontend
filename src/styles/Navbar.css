@@ -1,74 +1,114 @@
-.nav-premium {
+/* ============================================================
+   💎 RIDE N ROAR - ELITE NAVBAR STYLES
+   ============================================================ */
+
+.nav-root {
   position: fixed;
-  top: 0; width: 100%; z-index: 1000;
-  padding: 20px 0;
-  transition: all 0.3s ease;
+  top: 0; width: 100%; z-index: 2000;
+  padding: 24px 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   background: transparent;
 }
 
-.nav-scrolled {
-  padding: 12px 0;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+.nav-active {
+  padding: 14px 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
 }
 
-.nav-container {
-  max-width: 1280px; margin: 0 auto;
+.nav-wrapper {
+  max-width: 1400px; margin: 0 auto;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 40px;
+  padding: 0 4%;
 }
 
-/* Logo Styles */
-.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #1e293b; }
-.logo-icon-wrapper { 
+/* BRAND */
+.brand-box { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #0f172a; }
+.brand-icon { 
   background: #6366f1; color: white; 
-  padding: 8px; border-radius: 10px;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
 }
-.logo-text-stack { display: flex; flex-direction: column; line-height: 1; }
-.logo-text-main { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px; }
-.logo-text-sub { font-size: 0.65rem; letter-spacing: 2px; color: #64748b; font-weight: 600; }
+.brand-labels { display: flex; flex-direction: column; }
+.brand-name { font-weight: 900; font-size: 1.25rem; letter-spacing: -1px; line-height: 1; }
+.brand-loc { 
+  font-size: 0.6rem; letter-spacing: 2px; color: #94a3b8; 
+  font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 3px;
+}
 
-/* User Profile Pill */
-.user-profile-pill {
+/* MENU LINKS */
+.nav-menu { 
+  display: flex; align-items: center; gap: 35px; 
+  background: rgba(241, 245, 249, 0.5);
+  padding: 8px 24px; border-radius: 100px;
+}
+.nav-menu a { 
+  text-decoration: none; color: #64748b; font-weight: 600; 
+  font-size: 0.9rem; transition: 0.3s;
+}
+.nav-menu a:hover, .nav-menu a.link-active { color: #6366f1; }
+
+/* AUTH BUTTONS */
+.guest-btns { display: flex; align-items: center; gap: 20px; }
+.login-link { text-decoration: none; color: #0f172a; font-weight: 700; font-size: 0.9rem; }
+.signup-btn {
+  background: #0f172a; color: white; text-decoration: none;
+  padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 8px; transition: 0.3s;
+}
+.signup-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+/* USER PILL */
+.user-group { position: relative; }
+.user-pill {
   display: flex; align-items: center; gap: 10px;
-  background: #f8fafc; padding: 6px 12px;
-  border-radius: 50px; border: 1px solid #e2e8f0;
-  cursor: pointer; transition: 0.2s;
+  background: white; padding: 6px 6px 6px 14px;
+  border-radius: 50px; border: 1px solid #f1f5f9;
+  cursor: pointer; transition: 0.3s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.02);
 }
-.user-profile-pill:hover { border-color: #6366f1; background: #fff; }
+.user-pill:hover { border-color: #6366f1; transform: translateY(-1px); }
 
-.avatar-circle {
+.user-avatar {
   width: 32px; height: 32px; background: #6366f1;
   color: white; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; font-weight: bold; font-size: 0.85rem;
+  border-radius: 50%; font-weight: 800; font-size: 0.8rem;
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
 }
 
-.user-role-tag {
-  display: block; font-size: 0.65rem; text-transform: uppercase;
-  color: #6366f1; font-weight: 700;
-}
+.user-meta { display: flex; flex-direction: column; line-height: 1.1; }
+.u-name { font-weight: 800; font-size: 0.85rem; color: #0f172a; }
+.u-role { font-size: 0.6rem; text-transform: uppercase; color: #6366f1; font-weight: 800; }
 
-/* Dropdown Menu */
-.user-dropdown-container { position: relative; }
-.nav-dropdown-menu {
+/* DROPDOWN */
+.user-menu-drop {
   position: absolute; right: 0; top: calc(100% + 15px);
-  width: 220px; background: white; border-radius: 14px;
-  border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  width: 200px; background: white; border-radius: 20px;
+  border: 1px solid #f1f5f9; box-shadow: 0 20px 40px rgba(0,0,0,0.08);
   opacity: 0; visibility: hidden; transform: translateY(10px);
-  transition: 0.3s ease;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px;
 }
-.user-dropdown-container:hover .nav-dropdown-menu {
-  opacity: 1; visibility: visible; transform: translateY(0);
-}
+.user-group:hover .user-menu-drop { opacity: 1; visibility: visible; transform: translateY(0); }
 
-.dropdown-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 18px; text-decoration: none; color: #475569;
-  font-size: 0.9rem; transition: 0.2s;
-}
-.dropdown-item:hover { background: #f1f5f9; color: #6366f1; }
-.logout-action { border: none; width: 100%; cursor: pointer; background: none; color: #ef4444 !important; }
+.menu-header { padding: 10px 12px; font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
+.menu-sep { height: 1px; background: #f1f5f9; margin: 8px 0; }
 
-.dropdown-divider { height: 1px; background: #f1f5f9; margin: 5px 0; }
+.menu-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; text-decoration: none; color: #475569;
+  font-size: 0.85rem; font-weight: 600; border-radius: 12px;
+  transition: 0.2s; border: none; background: none; width: 100%; cursor: pointer;
+}
+.menu-link:hover { background: #f8fafc; color: #6366f1; }
+.out-btn { color: #ef4444 !important; }
+.out-btn:hover { background: #fff1f2; }
+
+@media (max-width: 900px) {
+  .nav-menu { display: none; }
+}

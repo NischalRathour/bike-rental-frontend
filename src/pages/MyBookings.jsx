@@ -30,7 +30,7 @@ const MyBookings = () => {
           setBookings(res.data);
         }
       } catch (error) {
-        setError("Unable to load your bookings. Please try again.");
+        setError("We couldn't load your bookings. Please refresh.");
       } finally {
         setLoading(false);
       }
@@ -41,7 +41,7 @@ const MyBookings = () => {
   if (loading) return (
     <div className="bookings-loader-wrapper">
       <div className="premium-spinner"></div>
-      <p>Synchronizing your Kathmandu rides...</p>
+      <p>Updating your bookings...</p>
     </div>
   );
 
@@ -51,11 +51,11 @@ const MyBookings = () => {
         
         <header className="bookings-page-header">
           <div className="header-text-group">
-            <h1>Activity Ledger</h1>
-            <p>Track and manage your premium bike rentals</p>
+            <h1>My <span className="text-indigo">Bookings</span></h1>
+            <p>View and manage your recent rental history</p>
           </div>
           <Link to="/bikes" className="btn-book-new-float">
-            <Bike size={18} /> Rent Another
+            <Bike size={18} /> Rent a Bike
           </Link>
         </header>
 
@@ -71,10 +71,10 @@ const MyBookings = () => {
               <div className="empty-icon-circle">
                 <Bike size={48} />
               </div>
-              <h2>No Bookings Found</h2>
-              <p>Your activity ledger is currently empty. Ready for your first Kathmandu adventure?</p>
+              <h2>No Bookings Yet</h2>
+              <p>Your booking list is currently empty. Ready to hit the road?</p>
               <button onClick={() => navigate("/bikes")} className="btn-browse-fleet">
-                Browse Available Fleet <ArrowRight size={18} />
+                Explore Available Bikes <ArrowRight size={18} />
               </button>
             </motion.div>
           ) : (
@@ -82,36 +82,40 @@ const MyBookings = () => {
               {bookings.map((booking) => (
                 <motion.div 
                   layout
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   key={booking._id} 
                   className="booking-ledger-card"
                 >
+                  {/* Card Visual Side */}
                   <div className="ledger-visual">
                     <img 
-                      src={booking.bike?.images?.[0] || "/images/default-bike.jpg"} 
+                      src={booking.bike?.images?.[0] || booking.bikeImage || "https://via.placeholder.com/300x200"} 
                       alt={booking.bike?.name} 
                     />
-                    <div className={`status-tag ${booking.status.toLowerCase()}`}>
-                      {booking.status}
+                    <div className={`status-tag ${booking.status?.toLowerCase()}`}>
+                      {booking.status || 'Active'}
                     </div>
                   </div>
 
+                  {/* Card Content Side */}
                   <div className="ledger-content">
                     <div className="content-main">
                       <div className="bike-meta">
-                        <span className="location-tag"><MapPin size={12}/> Kathmandu Hub</span>
-                        <h3>{booking.bike?.name || "Ride N Roar Unit"}</h3>
+                        <span className="location-tag"><MapPin size={12}/> Kathmandu</span>
+                        <h3>{booking.bike?.name || booking.bikeName || "Premium Bike"}</h3>
                       </div>
                       
                       <div className="details-row">
                         <div className="detail-pill">
                           <Calendar size={14} />
-                          <span>{new Date(booking.startDate).toLocaleDateString('en-NP')} - {new Date(booking.endDate).toLocaleDateString('en-NP')}</span>
+                          <span>
+                            {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                          </span>
                         </div>
                         <div className="detail-pill">
                           <Clock size={14} />
-                          <span>{booking.days || 1} Days Rental</span>
+                          <span>Rental Active</span>
                         </div>
                       </div>
                     </div>
@@ -119,26 +123,29 @@ const MyBookings = () => {
                     <div className="ledger-footer">
                       <div className="financial-group">
                         <div className="price-stack">
-                          <label>Total Amount</label>
-                          <strong>Rs. {booking.totalPrice}</strong>
+                          <label>Total Paid</label>
+                          <strong>Rs. {booking.totalPrice?.toLocaleString()}</strong>
                         </div>
-                        <div className={`pay-status-pill ${booking.paymentStatus.toLowerCase()}`}>
-                          {booking.paymentStatus === 'Paid' ? <CheckCircle2 size={14} /> : <CreditCard size={14} />}
-                          {booking.paymentStatus === 'Paid' ? 'Verified' : 'Unpaid'}
+                        <div className={`pay-status-pill ${booking.paymentStatus?.toLowerCase() === 'paid' ? 'paid' : 'unpaid'}`}>
+                          {booking.paymentStatus?.toLowerCase() === 'paid' ? (
+                            <><CheckCircle2 size={14} /> Verified</>
+                          ) : (
+                            <><CreditCard size={14} /> Payment Required</>
+                          )}
                         </div>
                       </div>
 
                       <div className="action-group">
-                        {booking.paymentStatus !== 'Paid' ? (
+                        {booking.paymentStatus?.toLowerCase() !== 'paid' ? (
                           <button 
                             className="btn-pay-action"
                             onClick={() => navigate(`/payment/${booking._id}`)}
                           >
-                            Finalize Payment <ArrowRight size={16} />
+                            Pay Now <ArrowRight size={16} />
                           </button>
                         ) : (
-                          <Link to="/customer-dashboard" className="btn-view-status">
-                            View Dashboard
+                          <Link to="/customer" className="btn-view-status">
+                            Go to Dashboard
                           </Link>
                         )}
                       </div>

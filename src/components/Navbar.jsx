@@ -7,10 +7,10 @@ import {
   LayoutDashboard, 
   ChevronDown, 
   Bike, 
-  PhoneCall,
   Settings,
   ShieldCheck,
-  UserCircle
+  UserCircle,
+  MapPin
 } from 'lucide-react';
 import "../styles/Navbar.css"; 
 
@@ -19,95 +19,86 @@ const Navbar = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Sticky Glassmorphism Effect
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Logic for Dashboard Redirection based on Actor Role
   const getDashboardLink = () => {
     if (!user) return '/login';
-    if (user.role === 'admin') return '/admin';
+    if (user.role === 'admin') return '/admin/dashboard';
     if (user.role === 'owner') return '/owner-dashboard';
     return '/customer';
   };
 
   return (
-    <nav className={`nav-premium ${isScrolled ? 'nav-scrolled' : ''}`}>
-      <div className="nav-container">
+    <nav className={`nav-root ${isScrolled ? 'nav-active' : ''}`}>
+      <div className="nav-wrapper">
         
-        {/* 🏁 BRAND IDENTITY */}
-        <Link to="/" className="nav-logo">
-          <div className="logo-icon-wrapper">
-            <Bike size={22} strokeWidth={3} />
+        {/* 🏁 LOGO SECTION */}
+        <Link to="/" className="brand-box">
+          <div className="brand-icon">
+            <Bike size={20} strokeWidth={2.5} />
           </div>
-          <div className="logo-text-stack">
-            <span className="logo-text-main">Ride N Roar</span>
-            <span className="logo-text-sub">KATHMANDU</span>
+          <div className="brand-labels">
+            <span className="brand-name">Ride N Roar</span>
+            <span className="brand-loc"><MapPin size={8} /> KATHMANDU</span>
           </div>
         </Link>
 
-        {/* 🗺️ NAVIGATION LINKS */}
-        <div className="nav-links">
-          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
-          <Link to="/bikes" className={location.pathname === '/bikes' ? 'active' : ''}>Fleet</Link>
-          <Link to="/tours" className={location.pathname === '/tours' ? 'active' : ''}>Expeditions</Link>
-          <Link to="/blog" className={location.pathname === '/blog' ? 'active' : ''}>Stories</Link>
-          <Link to="/contact" className="nav-contact-pill">
-            <PhoneCall size={14} /> <span>Support</span>
-          </Link>
+        {/* 🧭 SIMPLE NAV LINKS */}
+        <div className="nav-menu">
+          <Link to="/" className={location.pathname === '/' ? 'link-active' : ''}>Home</Link>
+          <Link to="/bikes" className={location.pathname === '/bikes' ? 'link-active' : ''}>Bikes</Link>
+          <Link to="/tours" className={location.pathname === '/tours' ? 'link-active' : ''}>Tours</Link>
+          <Link to="/contact" className={location.pathname === '/contact' ? 'link-active' : ''}>Support</Link>
         </div>
 
-        {/* 👤 AUTHENTICATION ACTIONS */}
-        <div className="nav-actions">
+        {/* 👤 PROFILE & AUTH */}
+        <div className="nav-side">
           {!user ? (
-            /* --- GUEST VIEW --- */
-            <div className="auth-group">
-              <Link to="/login" className="btn-login-minimal">Sign In</Link>
-              <Link to="/register" className="btn-signup-premium">
-                Join the Fleet <ShieldCheck size={14} />
+            <div className="guest-btns">
+              <Link to="/login" className="login-link">Login</Link>
+              <Link to="/register" className="signup-btn">
+                Join <ShieldCheck size={14} />
               </Link>
             </div>
           ) : (
-            /* --- LOGGED-IN VIEW --- */
-            <div className="user-dropdown-container">
-              <div className="user-profile-pill">
-                <div className="avatar-circle">
-                  {/* ✅ FIX: Optional chaining avoids the 'charAt' crash */}
+            <div className="user-group">
+              <div className="user-pill">
+                <div className="user-avatar">
                   {user?.name ? user.name.charAt(0).toUpperCase() : <UserCircle size={18} />}
                 </div>
-                <div className="user-info-text">
-                  <span className="user-name">{user?.name?.split(' ')[0] || "Member"}</span>
-                  <span className="user-role-tag">{user?.role}</span>
+                <div className="user-meta">
+                  <span className="u-name">{user?.name?.split(' ')[0] || "User"}</span>
+                  <span className="u-role">{user?.role}</span>
                 </div>
-                <ChevronDown size={14} className="dropdown-arrow" />
+                <ChevronDown size={12} className="u-arrow" />
               </div>
 
-              {/* PREMIUM DROPDOWN CONTENT */}
-              <div className="nav-dropdown-menu">
-                <div className="dropdown-meta">
-                   <p className="meta-label">Signed in as</p>
-                   <p className="meta-value">{user?.email}</p>
+              {/* DROPDOWN MENU */}
+              <div className="user-menu-drop">
+                <div className="menu-header">
+                   <p>{user?.email}</p>
                 </div>
                 
-                <div className="dropdown-divider"></div>
+                <div className="menu-sep"></div>
 
-                <Link to={getDashboardLink()} className="dropdown-item">
-                  <LayoutDashboard size={16} /> 
-                  <span>{user?.role === 'customer' ? 'My Bookings' : 'Management Hub'}</span>
+                <Link to={getDashboardLink()} className="menu-link">
+                  <LayoutDashboard size={15} /> 
+                  <span>{user?.role === 'customer' ? 'My Bookings' : 'My Garage'}</span>
                 </Link>
 
-                <Link to="/profile" className="dropdown-item">
-                  <Settings size={16} /> 
-                  <span>Account Settings</span>
+                <Link to="/profile" className="menu-link">
+                  <Settings size={15} /> 
+                  <span>Settings</span>
                 </Link>
 
-                <div className="dropdown-divider"></div>
+                <div className="menu-sep"></div>
 
-                <button onClick={logout} className="dropdown-item logout-action">
-                  <LogOut size={16} /> <span>Sign Out</span>
+                <button onClick={logout} className="menu-link out-btn">
+                  <LogOut size={15} /> <span>Logout</span>
                 </button>
               </div>
             </div>

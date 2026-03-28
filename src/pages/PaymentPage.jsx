@@ -4,7 +4,7 @@ import paymentApi from '../api/paymentApi';
 import Payment from '../components/Payment';
 import { 
   ShieldCheck, ChevronLeft, Bike, Calendar, 
-  Cpu, Lock, Globe, CheckCircle2, CreditCard
+  Cpu, Lock, Globe, CreditCard
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import "../styles/PaymentPage.css";
@@ -34,7 +34,7 @@ const PaymentPage = () => {
       await paymentApi.post(`/payments/confirm`, { bookingId, paymentId });
       const confirmationData = {
         bookingId,
-        bikeName: booking?.bikes?.[0]?.name || "Premium Fleet Unit",
+        bikeName: booking?.bikes?.[0]?.name || "Premium Bike",
         bikeImage: booking?.bikes?.[0]?.images?.[0],
         startDate: booking?.startDate,
         endDate: booking?.endDate,
@@ -48,28 +48,33 @@ const PaymentPage = () => {
     }
   };
 
-  if (loading) return <div className="pay-loader-hub"><div className="spinner-quantum"></div></div>;
+  if (loading) return (
+    <div className="pay-loader-hub">
+      <div className="spinner-quantum"></div>
+      <p>Loading payment details...</p>
+    </div>
+  );
 
   return (
     <div className="marketplace-pay-root">
       <div className="pay-content-grid">
         
-        {/* --- LEFT: MAIN CHECKOUT AREA --- */}
+        {/* --- LEFT: CHECKOUT AREA --- */}
         <div className="hub-main-section">
           <button onClick={() => navigate(-1)} className="hub-back-action">
-            <ChevronLeft size={14}/> <span>Fleet Hub</span>
+            <ChevronLeft size={14}/> <span>Back to Booking</span>
           </button>
 
           <header className="hub-header">
-            <h1 className="hub-title">Secure <span className="text-indigo">Checkout</span></h1>
-            <p className="hub-subtitle">Finalize your authorization for Kathmandu expedition services.</p>
+            <h1 className="hub-title">Secure <span className="text-indigo">Payment</span></h1>
+            <p className="hub-subtitle">Please complete your payment to confirm the rental.</p>
           </header>
 
-          {/* 💳 COMPACT PREMIUM VISA CARD (SIZED FOR AESTHETICS) */}
+          {/* 💳 VISUAL CREDIT CARD */}
           <div className="visa-container-compact">
             <motion.div 
-              initial={{ opacity: 0, y: 10 }} 
-              animate={{ opacity: 1, y: 0 }} 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
               className="platinum-card-visual"
             >
               <div className="p-card-top">
@@ -77,13 +82,13 @@ const PaymentPage = () => {
                   <Cpu size={28} className="gold-icon" />
                   <Globe size={14} className="nfc-icon" />
                 </div>
-                <div className="p-brand">PLATINUM PASS</div>
+                <div className="p-brand">PREMIUM MEMBER</div>
               </div>
               <div className="p-card-number">•••• •••• •••• 8842</div>
               <div className="p-card-bottom">
                 <div className="p-meta">
-                  <label>VIRTUAL CREDIT</label>
-                  <strong>Rs. 850,000.00</strong>
+                  <label>CARD HOLDER</label>
+                  <strong>{booking?.user?.name || "Valued Rider"}</strong>
                 </div>
                 <div className="p-card-brand-logo">
                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" />
@@ -93,20 +98,20 @@ const PaymentPage = () => {
           </div>
 
           <div className="vault-engine-wrapper">
-             <div className="terminal-label"><Lock size={12}/> ENCRYPTED CARD AUTHORIZATION</div>
-             <Payment 
+              <div className="terminal-label"><Lock size={12}/> ENCRYPTED CHECKOUT</div>
+              <Payment 
                 amount={booking?.totalPrice} 
                 bookingId={bookingId} 
                 onSuccess={handleSuccess} 
-             />
+              />
           </div>
         </div>
 
-        {/* --- RIGHT: HIGH-END INVOICE --- */}
+        {/* --- RIGHT: SIDEBAR SUMMARY --- */}
         <aside className="hub-sidebar-section">
            <div className="sidebar-sticky-inner">
               <div className="invoice-header-premium">
-                <h3>Expedition Ledger</h3>
+                <h3>Order Summary</h3>
                 <div className="badge-verified"><ShieldCheck size={12}/> SECURE</div>
               </div>
 
@@ -114,26 +119,26 @@ const PaymentPage = () => {
                 <div className="asset-summary-box">
                    <div className="asset-icon"><Bike size={20}/></div>
                    <div className="asset-info">
-                      <label>Machine Selection</label>
-                      <p>{booking?.bikes?.[0]?.name || "Luxury Expedition Unit"}</p>
+                      <label>Selected Bike</label>
+                      <p>{booking?.bikes?.[0]?.name || "Standard Model"}</p>
                    </div>
                 </div>
 
                 <div className="asset-summary-box">
                    <div className="asset-icon"><Calendar size={20}/></div>
                    <div className="asset-info">
-                      <label>Rental Window</label>
+                      <label>Rental Dates</label>
                       <p>{new Date(booking?.startDate).toLocaleDateString()} — {new Date(booking?.endDate).toLocaleDateString()}</p>
                    </div>
                 </div>
 
                 <div className="cost-breakdown">
-                   <div className="cost-row"><span>Logistics & Handling</span><span className="text-free">INCLUSIVE</span></div>
-                   <div className="cost-row"><span>Damage Waiver</span><span className="text-free">INCLUSIVE</span></div>
+                   <div className="cost-row"><span>Service Fee</span><span className="text-free">FREE</span></div>
+                   <div className="cost-row"><span>Insurance</span><span className="text-free">INCLUDED</span></div>
                 </div>
 
                 <div className="total-due-area">
-                   <label>TOTAL PAYABLE AMOUNT</label>
+                   <label>TOTAL AMOUNT</label>
                    <h2>Rs. {booking?.totalPrice?.toLocaleString()}</h2>
                 </div>
               </div>
@@ -142,7 +147,7 @@ const PaymentPage = () => {
                  <div className="trust-icons">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" height="15" />
                  </div>
-                 <p>Automated confirmation will be issued upon authorization.</p>
+                 <p>Your data is protected by industry-standard encryption.</p>
               </div>
            </div>
         </aside>
