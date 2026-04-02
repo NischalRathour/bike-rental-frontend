@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Phone, Send, Clock, Mail, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Phone, Send, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import api from '../api/axiosConfig';
 import "../styles/Contact.css";
 
@@ -12,17 +12,38 @@ const Contact = () => {
     message: ""
   });
   const [status, setStatus] = useState({ loading: false, type: "", msg: "" });
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ loading: true, type: "", msg: "" });
+    
     try {
-      // Assuming you have a contact route in your backend
-      const res = await api.post('/contact/inquiry', formData);
-      setStatus({ loading: false, type: "success", msg: "Message sent! We will contact you shortly." });
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      /**
+       * 🚀 DATA MAPPING:
+       * Your Backend Model uses 'fullName', 'tourName', and 'groupSize'.
+       * We map the form fields to these keys so the Backend accepts the request.
+       */
+      const payload = {
+        fullName: formData.name,      // Maps 'name' to 'fullName'
+        tourName: formData.subject,   // Maps 'subject' to 'tourName'
+        groupSize: formData.message,  // Maps 'message' to 'groupSize'
+        email: formData.email         
+      };
+
+      const res = await api.post('/contact/inquiry', payload);
+      
+      if (res.data.success) {
+        setShowSuccess(true);
+        setFormData({ name: "", email: "", subject: "", message: "" });
+        setStatus({ loading: false, type: "", msg: "" });
+      }
     } catch (err) {
-      setStatus({ loading: false, type: "error", msg: "Failed to send. Please call us directly." });
+      setStatus({ 
+        loading: false, 
+        type: "error", 
+        msg: err.response?.data?.message || "Failed to send. Please check your internet or server." 
+      });
     }
   };
 
@@ -71,7 +92,7 @@ const Contact = () => {
             </div>
           </motion.div>
 
-          {/* ✉️ RIGHT SIDE: PREMIUM FORM */}
+          {/* ✉️ RIGHT SIDE: FORM */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
@@ -83,8 +104,7 @@ const Contact = () => {
                 <div className="input-group">
                   <label>Full Name</label>
                   <input 
-                    type="text" 
-                    required 
+                    type="text" required 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Enter your name" 
@@ -93,8 +113,7 @@ const Contact = () => {
                 <div className="input-group">
                   <label>Email Address</label>
                   <input 
-                    type="email" 
-                    required 
+                    type="email" required 
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                     placeholder="name@example.com" 
@@ -105,8 +124,7 @@ const Contact = () => {
               <div className="input-group">
                 <label>Subject</label>
                 <input 
-                  type="text" 
-                  required 
+                  type="text" required 
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
                   placeholder="How can we help?" 
@@ -139,19 +157,43 @@ const Contact = () => {
           </motion.div>
         </div>
 
-        {/* 🗺️ MAP SECTION */}
-        <div className="map-wrapper">
+        {/* 🗺️ MAP SECTION - FIXED REAL GOOGLE MAPS EMBED */}
+        <div className="map-wrapper" style={{ marginTop: '80px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
           <iframe 
-            title="Thamel Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.12654966671!2d85.30869637617585!3d27.713410525359734!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb18fdf6fe6983%3A0x6b7790b4d4b14d87!2sThamel%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1710000000000!5m2!1sen!2snp"
+            title="Ride N Roar Thamel Location"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.128711107572!2d85.3086!3d27.7133!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb190011000001%3A0x7d02e7a37277874c!2sThamel%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1712000000000!5m2!1sen!2snp"
             width="100%" 
             height="450" 
             style={{ border: 0 }} 
             allowFullScreen="" 
-            loading="lazy"
+            loading="lazy" 
+            referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
         </div>
       </div>
+
+      {/* 🏆 SUCCESS MODAL */}
+      <AnimatePresence>
+        {showSuccess && (
+          <div className="modal-overlay-blur">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="success-modal-card"
+            >
+              <div className="success-icon-circle">
+                <CheckCircle2 size={40} color="#10b981" />
+              </div>
+              <h2>Inquiry Delivered</h2>
+              <p>We've received your message. Our team at <strong>Ride N Roar</strong> will contact you shortly.</p>
+              <button onClick={() => setShowSuccess(false)} className="btn-modal-close">
+                Done
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

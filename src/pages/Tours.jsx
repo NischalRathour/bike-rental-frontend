@@ -1,191 +1,205 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Calendar, Clock, Star, 
-  ShieldCheck, ArrowRight, 
-  Mountain, Users, Coffee, Sparkles
+  ShieldCheck, ArrowRight, X,
+  Mountain, Users, Coffee, Sparkles, Loader2, CheckCircle2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axiosConfig';
 import "../styles/Tours.css"; 
 
 const Tours = () => {
-  const [formData, setFormData] = useState({ 
-    fullName: "", 
-    groupSize: "1 Person (Solo)" 
-  });
+  const [tours, setTours] = useState([]);
+  const [selectedTour, setSelectedTour] = useState(null);
+  const [showDetails, setShowDetails] = useState(null); 
+  const [showSuccess, setShowSuccess] = useState(false); 
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({ fullName: "", groupSize: "1 Person (Solo)" });
   const [submitting, setSubmitting] = useState(false);
 
-  const tourDetails = {
-    name: "Upper Mustang Expedition",
-    price: 45000,
-    duration: "12 Days",
-    difficulty: "Challenging",
-    nextDate: "April 15, 2026",
-    rating: 5,
-    reviews: 14,
-    description: "Experience the forbidden kingdom of Mustang on two wheels. This tour takes you through deep river gorges, ancient monasteries, and the high-altitude desert landscapes of the Himalayas. Perfect for riders seeking the ultimate adventure.",
-    image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=2000" // High-res Adventure Bike
-  };
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const res = await api.get('/tours'); 
+        const data = res.data.tours || res.data;
+        setTours(data);
+        if (data.length > 0) setSelectedTour(data[0]); 
+      } catch (err) {
+        console.error("Connection to Marketplace failed.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTours();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedTour) return;
     setSubmitting(true);
     try {
-      const response = await api.post('/tours/inquiry', {
+      await api.post('/tours/inquiry', {
         fullName: formData.fullName,
         groupSize: formData.groupSize,
-        tourName: tourDetails.name 
+        tourName: selectedTour.name 
       });
-      alert(response.data.message || "Inquiry sent successfully!");
+      setShowSuccess(true);
       setFormData({ fullName: "", groupSize: "1 Person (Solo)" });
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to send inquiry.");
+      alert("Inquiry system is temporarily offline.");
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (loading) return (
+    <div className="premium-loader-container">
+      <div className="loader-orbit"></div>
+      <p>Curating Luxury Routes...</p>
+    </div>
+  );
+
   return (
-    <div className="tours-page-root">
-      <div className="tours-container">
+    <div className="tours-aesthetic-root">
+      <div className="premium-container">
         
-        {/* 🏔️ TOUR HERO SECTION */}
-        <section className="tours-hero-grid">
-          
-          {/* LEFT SIDE: VISUALS */}
-          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="tour-visual-side">
-            <div className="main-image-wrapper">
-              <img src={tourDetails.image} alt={tourDetails.name} className="main-tour-img" />
-              <div className="featured-badge">
-                <Sparkles size={14} /> FEATURED EXPEDITION
-              </div>
-            </div>
-
-            <div className="tour-title-block">
-              <div className="title-left">
-                <h1>{tourDetails.name}</h1>
-                <div className="tour-meta-row">
-                  <span><Star size={16} fill="#fbbf24" color="#fbbf24"/> {tourDetails.rating}.0 ({tourDetails.reviews} reviews)</span>
-                  <span><MapPin size={16}/> Mustang, Nepal</span>
-                </div>
-              </div>
-              <div className="title-right">
-                <span className="price-main">₨{tourDetails.price.toLocaleString()}</span>
-                <span className="price-sub">per person / all inclusive</span>
-              </div>
-            </div>
-
-            <p className="tour-description">{tourDetails.description}</p>
-
-            <div className="specs-grid">
-              {[
-                { icon: Clock, label: "Duration", value: tourDetails.duration },
-                { icon: Mountain, label: "Difficulty", value: tourDetails.difficulty },
-                { icon: Calendar, label: "Next Batch", value: tourDetails.nextDate }
-              ].map((spec, i) => (
-                <div key={i} className="spec-card">
-                  <spec.icon size={24} className="spec-icon" />
-                  <span className="spec-label">{spec.label}</span>
-                  <strong className="spec-value">{spec.value}</strong>
-                </div>
-              ))}
-            </div>
+        {/* --- HEADER SECTION --- */}
+        <header className="marketplace-header">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="badge-kicker">Premium Expeditions</span>
+            <h1>The <span className="text-gradient">Adventure</span> Ledger</h1>
+            <p>Experience the Himalayas with Nepal's elite motorcycle fleet.</p>
           </motion.div>
+        </header>
 
-          {/* RIGHT SIDE: INQUIRY FORM */}
-          <aside className="inquiry-sidebar">
-            <div className="inquiry-card">
-              <h3>Reserve Your Spot</h3>
-              <form className="inquiry-form" onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label>FULL NAME</label>
-                  <input 
-                    type="text" required value={formData.fullName}
-                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                    placeholder="Enter your name" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label>GROUP SIZE</label>
-                  <select 
-                    value={formData.groupSize}
-                    onChange={(e) => setFormData({...formData, groupSize: e.target.value})}
-                  >
-                    <option>1 Person (Solo)</option>
-                    <option>2-4 People (Small Group)</option>
-                    <option>5+ People (Private Group)</option>
-                  </select>
-                </div>
-                <div className="deposit-info">
-                  <div className="deposit-row">
-                    <span>Booking Deposit (15%)</span>
-                    <strong>₨6,750</strong>
+        {/* --- MAIN HERO VIEW --- */}
+        <AnimatePresence mode="wait">
+          {selectedTour && (
+            <section className="hero-showcase-grid">
+              <motion.div 
+                key={selectedTour._id}
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 1.05 }}
+                className="showcase-visual"
+              >
+                <div className="visual-wrapper">
+                  <img src={selectedTour.image} alt={selectedTour.name} />
+                  <div className="price-tag-overlay">
+                    <label>Starting at</label>
+                    <strong>₨{selectedTour.price?.toLocaleString()}</strong>
                   </div>
-                  <p>Secure your slot today. Balance due at HQ.</p>
                 </div>
 
-                <button type="submit" disabled={submitting} className="btn-confirm-inquiry">
-                  {submitting ? "Processing..." : "Confirm Inquiry"} <ArrowRight size={20}/>
-                </button>
-              </form>
-            </div>
-          </aside>
-        </section>
+                <div className="showcase-content">
+                  <div className="content-top">
+                    <div className="meta-pill"><MapPin size={14}/> {selectedTour.location}</div>
+                    <h2>{selectedTour.name}</h2>
+                    <p>{selectedTour.description}</p>
+                  </div>
 
-        {/* 🧭 OTHER PACKAGES */}
-        <section className="other-tours-section">
-          <div className="section-header">
-            <div>
-              <span className="section-kicker">Curated Routes</span>
-              <h2>Popular Adventure Routes</h2>
-            </div>
-            <button className="btn-outline-dark">Explore All Tours</button>
+                  <div className="specs-horizontal">
+                    <div className="s-item"><Clock size={18}/> <span>{selectedTour.duration}</span></div>
+                    <div className="s-item"><Mountain size={18}/> <span>{selectedTour.difficulty}</span></div>
+                    <div className="s-item"><Calendar size={18}/> <span>{selectedTour.nextDate}</span></div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <aside className="reservation-sidebar">
+                <div className="reservation-card">
+                  <h3>Reserve Slot</h3>
+                  <form onSubmit={handleSubmit}>
+                    <div className="input-field">
+                      <label>Guest Name</label>
+                      <input type="text" required value={formData.fullName} onChange={(e)=>setFormData({...formData, fullName: e.target.value})} placeholder="Full name" />
+                    </div>
+                    <div className="input-field">
+                      <label>Group Arrangement</label>
+                      <select value={formData.groupSize} onChange={(e)=>setFormData({...formData, groupSize: e.target.value})}>
+                        <option>1 Person (Solo)</option>
+                        <option>2-4 People (Private)</option>
+                        <option>5+ People (Corporate)</option>
+                      </select>
+                    </div>
+                    <div className="pricing-summary">
+                      <div className="p-row"><span>Booking Deposit (15%)</span> <span>₨{(selectedTour.price * 0.15).toLocaleString()}</span></div>
+                    </div>
+                    <button type="submit" disabled={submitting} className="btn-premium-action">
+                      {submitting ? "Processing..." : "Confirm Inquiry"} <ArrowRight size={18}/>
+                    </button>
+                  </form>
+                </div>
+              </aside>
+            </section>
+          )}
+        </AnimatePresence>
+
+        {/* --- MARKETPLACE BROWSER --- */}
+        <section className="marketplace-grid-section">
+          <div className="section-title-bar">
+            <h2>Available <span className="text-gradient">Fleet Packages</span></h2>
           </div>
           
-          <div className="horizontal-tour-grid">
-            <div className="wide-tour-card">
-              <div className="card-img" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1591637333184-19aa84b3e01f?q=80&w=1000)' }}></div>
-              <div className="card-info">
-                <h4>Manang Loop</h4>
-                <p>The Marsyangdi valley and high mountain lakes. 8 days of pure riding.</p>
-                <div className="card-footer">
-                  <span className="card-price">₨32,000</span>
-                  <button className="btn-small-dark">View Package</button>
+          <div className="tour-cards-flex">
+            {tours.map((tour) => (
+              <motion.div 
+                whileHover={{ y: -10 }}
+                key={tour._id} 
+                className={`premium-tour-card ${selectedTour?._id === tour._id ? 'active-selection' : ''}`}
+                onClick={() => { setSelectedTour(tour); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+              >
+                <div className="card-image-box">
+                  <img src={tour.image} alt={tour.name} />
                 </div>
-              </div>
-            </div>
-
-            <div className="wide-tour-card">
-              <div className="card-img" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1558981420-87aa9dad1c89?q=80&w=1000)' }}></div>
-              <div className="card-info">
-                <h4>Pokhara Valley</h4>
-                <p>Short 3-day getaway with panoramic views of the Annapurna range.</p>
-                <div className="card-footer">
-                  <span className="card-price">₨12,500</span>
-                  <button className="btn-small-dark">View Package</button>
+                <div className="card-details">
+                  <h4>{tour.name}</h4>
+                  <div className="card-meta-bottom">
+                    <span className="card-price-text">₨{tour.price?.toLocaleString()}</span>
+                    <button className="btn-view-quick" onClick={(e) => { e.stopPropagation(); setShowDetails(tour); }}>View Specs</button>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
-        </section>
-
-        {/* 🛠️ TRUST ELEMENTS */}
-        <section className="trust-grid">
-          {[
-            { icon: ShieldCheck, title: "Fully Insured", desc: "Comprehensive rider and bike insurance included." },
-            { icon: Users, title: "Expert Guides", desc: "Nepal's most experienced road captains." },
-            { icon: Coffee, title: "Premium Lodging", desc: "Handpicked boutique stays for maximum comfort." }
-          ].map((trust, i) => (
-            <div key={i} className="trust-item">
-              <div className="trust-icon-box"><trust.icon size={28}/></div>
-              <div className="trust-text">
-                <h4>{trust.title}</h4>
-                <p>{trust.desc}</p>
-              </div>
-            </div>
-          ))}
         </section>
       </div>
+
+      {/* --- PREMIUM MODALS --- */}
+      <AnimatePresence>
+        {showDetails && (
+          <div className="glass-modal-overlay" onClick={() => setShowDetails(null)}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="details-modal-box" onClick={(e) => e.stopPropagation()}
+            >
+              <button className="btn-close-modal" onClick={() => setShowDetails(null)}><X/></button>
+              <img src={showDetails.image} className="modal-hero-img" alt="" />
+              <div className="modal-inner-padding">
+                <span className="m-category">{showDetails.difficulty} Expedition</span>
+                <h2>{showDetails.name}</h2>
+                <p>{showDetails.description}</p>
+                <div className="m-stats-grid">
+                  <div className="m-stat"><strong>Batch:</strong> {showDetails.nextDate}</div>
+                  <div className="m-stat"><strong>Base:</strong> {showDetails.location}</div>
+                </div>
+                <button className="btn-modal-primary" onClick={() => { setSelectedTour(showDetails); setShowDetails(null); window.scrollTo({top: 0, behavior: 'smooth'}); }}>Select This Route</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showSuccess && (
+          <div className="glass-modal-overlay">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="success-modal-box">
+              <div className="success-lottie-placeholder"><CheckCircle2 size={50} color="#6366f1"/></div>
+              <h2>Request Received</h2>
+              <p>Your inquiry for <strong>{selectedTour?.name}</strong> has been logged. Our captain will call you shortly.</p>
+              <button onClick={() => setShowSuccess(false)} className="btn-modal-primary">Perfect</button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
