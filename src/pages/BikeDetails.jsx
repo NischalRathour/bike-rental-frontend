@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { bikesData } from '../data/fleet'; // ✅ Importing your shared data
+import { bikesData } from '../data/fleet'; // ✅ Ensure this file uses paths like /images/bullet.jpg
 import { 
   Star, Gauge, Calendar, Fuel, Users, 
   CheckCircle, ShieldCheck, Heart, Share2, Info,
@@ -9,20 +9,20 @@ import {
 import "../styles/BikeDetails.css";
 
 const BikeDetails = () => {
-  const { id } = useParams(); // Grabs 'b1', 'b2', etc. from the URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('features');
   const [bike, setBike] = useState(null);
 
   useEffect(() => {
-    // 🔍 Find the specific bike from your fleet.js matching the URL ID
+    // 🔍 Fetch the bike data
     const selectedBike = bikesData.find(b => b._id === id);
     
     if (selectedBike) {
       setBike(selectedBike);
-      window.scrollTo(0, 0); // Reset scroll to top on load
+      window.scrollTo(0, 0); 
     } else {
-      // If user enters an ID that doesn't exist, send them back to marketplace
+      // Fallback if ID is invalid
       navigate('/bikes');
     }
   }, [id, navigate]);
@@ -51,16 +51,24 @@ const BikeDetails = () => {
           {/* ⬅️ LEFT SIDE: DYNAMIC CONTENT */}
           <div className="content-side">
             <div className="main-image-card">
-              <img src={bike.images[0]} alt={bike.name} />
-              <div className="year-badge">{bike.modelYear}</div>
+              {/* ✅ UPDATED: Added real image logic with fallback */}
+              <img 
+                src={bike.images && bike.images[0] ? bike.images[0] : "/images/royal-enfield-1.jpg"} 
+                alt={bike.name} 
+                onError={(e) => {
+                  e.target.onerror = null; 
+                  e.target.src = "/images/royal-enfield-1.jpg"; 
+                }}
+              />
+              <div className="year-badge">{bike.modelYear || "2024"}</div>
             </div>
 
             <div className="title-section">
               <div className="title-left">
-                <h1>{bike.name}</h1>
+                <h1>{bike.brand} {bike.name}</h1>
                 <div className="review-summary">
                   <Star size={18} fill="#ffc107" color="#ffc107" />
-                  <span>{bike.rating}.0 ({bike.reviews} reviews)</span>
+                  <span>{bike.rating || "5.0"} ({bike.reviews || "12"} reviews)</span>
                 </div>
               </div>
               <div className="price-box">
@@ -74,33 +82,33 @@ const BikeDetails = () => {
               <button className="btn-icon-text"><Share2 size={18}/> Share</button>
             </div>
 
-            <p className="description-text">{bike.description}</p>
+            <p className="description-text">{bike.description || "Premium condition, serviced and ready for the Nepalese terrain."}</p>
 
             {/* 📊 DYNAMIC SPECS GRID */}
             <div className="features-grid">
               <div className="feature-item">
                 <Gauge size={22}/> 
-                <div><span>Mileage</span><strong>{bike.mileage}</strong></div>
+                <div><span>Mileage</span><strong>{bike.mileage || "45 kmpl"}</strong></div>
               </div>
               <div className="feature-item">
                 <Calendar size={22}/> 
-                <div><span>Edition</span><strong>{bike.modelYear}</strong></div>
+                <div><span>Edition</span><strong>{bike.modelYear || "2024"}</strong></div>
               </div>
               <div className="feature-item">
                 <Info size={22}/> 
-                <div><span>Engine</span><strong>{bike.engine}</strong></div>
+                <div><span>Engine</span><strong>{bike.cc || bike.engine}</strong></div>
               </div>
               <div className="feature-item">
                 <Users size={22}/> 
-                <div><span>Passengers</span><strong>{bike.seats}</strong></div>
+                <div><span>Passengers</span><strong>2 Seats</strong></div>
               </div>
               <div className="feature-item">
                 <Settings size={22}/> 
-                <div><span>Gearbox</span><strong>{bike.gear}</strong></div>
+                <div><span>Gearbox</span><strong>5-Speed Manual</strong></div>
               </div>
               <div className="feature-item">
                 <Fuel size={22}/> 
-                <div><span>Fuel Type</span><strong>{bike.fuel}</strong></div>
+                <div><span>Fuel Type</span><strong>Petrol</strong></div>
               </div>
             </div>
 
@@ -123,7 +131,7 @@ const BikeDetails = () => {
                 {activeTab === 'policy' && (
                   <div className="policy-text">
                     <p>• Refundable security deposit required upon pickup.</p>
-                    <p>• Must hold a valid <strong>Category A</strong> driving license.</p>
+                    <p>• Must hold a valid Category A driving license.</p>
                     <p>• Late return fee: ₨ 500 per hour after 8:00 PM.</p>
                     <p>• Full tank provided; please return with full tank.</p>
                   </div>
@@ -136,19 +144,22 @@ const BikeDetails = () => {
           <aside className="booking-side">
             <div className="booking-card sticky">
               <h3>Secure Booking</h3>
-              <form className="booking-form">
+              <form className="booking-form" onSubmit={(e) => {
+                e.preventDefault();
+                navigate(`/book/${bike._id}`);
+              }}>
                 <div className="form-group">
                   <label>Pickup Date</label>
-                  <input type="date" className="custom-input" />
+                  <input type="date" className="custom-input" required />
                 </div>
                 <div className="form-group">
                   <label>Return Date</label>
-                  <input type="date" className="custom-input" />
+                  <input type="date" className="custom-input" required />
                 </div>
                 
                 <div className="total-preview">
                   <span>Base Price</span>
-                  <strong>₨{bike.price.toLocaleString()}</strong>
+                  <strong className="text-indigo">₨{bike.price.toLocaleString()}</strong>
                 </div>
 
                 <button type="submit" className="btn-book-now">
@@ -158,7 +169,7 @@ const BikeDetails = () => {
 
               <div className="whatsapp-help">
                 <MessageCircle size={18} />
-                <span>Need help? <a href="#">WhatsApp Sujan</a></span>
+                <span>Need help? <a href="https://wa.me/9779800000000" target="_blank" rel="noreferrer">WhatsApp Sujan</a></span>
               </div>
             </div>
           </aside>

@@ -1,31 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { 
-  Camera, User, Mail, Phone, MapPin, 
-  ShieldCheck, Leaf, Save, ChevronLeft 
+  User, Mail, Phone, MapPin, Save, ChevronLeft, 
+  ShieldCheck, Zap, Award, Bell, Lock, Smartphone
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axiosConfig';
-import "../styles/Profile.css";
+import "../styles/Profile.css"; // Ensure your CSS matches this premium look
 
 const Profile = () => {
   const { user, setUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  
-  // ✅ Functional State Management
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     address: "",
   });
 
-  // Load user data into form on mount or user change
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || "",
         phone: user.phone || "",
-        address: user.address || "Kathmandu, Nepal",
+        address: user.address || "",
       });
     }
   }, [user]);
@@ -34,112 +31,139 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // ✅ Sync with backend
       const res = await api.put('/users/profile', formData);
-      
       if (res.data.success) {
-        alert("Profile synchronized successfully!");
-        // ✅ Update global context to reflect changes instantly
         setUser(res.data.user);
+        alert("Account synchronized with the Cloud.");
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Update failed. Check your connection.");
+      alert("Sync Error: " + (err.response?.data?.message || "Check connection"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="profile-settings-root">
-      <div className="profile-wide-container">
+    <div className="marketplace-profile-wrapper">
+      <div className="profile-container-glass">
         
-        {/* 👤 LEFT: IDENTITY PREVIEW */}
-        <aside className="identity-card-glass">
-          <Link to="/customer" className="back-link-modern">
-            <ChevronLeft size={16}/> Back to Command Center
+        {/* --- HEADER: NAVIGATION --- */}
+        <header className="profile-top-nav">
+          <Link to={user?.role === 'owner' ? "/owner-dashboard" : "/customer"} className="btn-back-soft">
+            <ChevronLeft size={18} /> Dashboard
           </Link>
-
-          <div className="avatar-upload-wrapper">
-            <img 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name}`} 
-              alt="Avatar" 
-              className="avatar-preview" 
-            />
-            <label className="edit-avatar-btn">
-              <Camera size={18} />
-              <input type="file" style={{ display: 'none' }} />
-            </label>
+          <div className="profile-status-pill">
+            <div className="online-indicator"></div>
+            <span>System Active</span>
           </div>
+        </header>
 
-          <h2 className="profile-display-name">{user?.name}</h2>
-          <p className="profile-display-email">{user?.email}</p>
+        <div className="profile-main-grid">
           
-          <div className="eco-rank-badge">
-            <Leaf size={14} /> Eco-Rider: Elite
-          </div>
-
-          <div className="verification-card-mini">
-            <p className="mini-label">IDENTITY STATUS</p>
-            <div className="mini-value">
-              <ShieldCheck size={20} color="#10b981" /> 
-              Verified {user?.role}
+          {/* --- LEFT SIDE: IDENTITY CARD --- */}
+          <aside className="profile-identity-sidebar">
+            <div className="identity-avatar-section">
+              <div className="avatar-ring">
+                <img 
+                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name}`} 
+                  alt="Avatar" 
+                />
+              </div>
+              <h2 className="user-name-display">{user?.name}</h2>
+              <span className="user-role-tag">{user?.role?.toUpperCase()}</span>
             </div>
-          </div>
-        </aside>
 
-        {/* 🛠️ RIGHT: EDITABLE SETTINGS */}
-        <main className="settings-form-box">
-          <h2 className="form-section-title">Account <span className="text-indigo">Configuration</span></h2>
-          
-          <form onSubmit={handleUpdate} className="managed-form-profile">
-            <div className="input-grid-premium">
-              <div className="input-group-managed">
-                <label><User size={14} /> Full Name</label>
-                <input 
-                  type="text" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                  required
-                />
+            <div className="identity-metrics-list">
+              <div className="metric-box">
+                <Zap size={16} className="icon-indigo" />
+                <div className="metric-text">
+                   <p className="m-val">{user?.rewardPoints || 0}</p>
+                   <p className="m-lab">Reward Points</p>
+                </div>
               </div>
-
-              <div className="input-group-managed">
-                <label><Mail size={14} /> Email Address</label>
-                <input type="email" value={user?.email || ""} disabled className="input-locked" />
-                <span className="input-hint">Email cannot be changed</span>
-              </div>
-
-              <div className="input-group-managed">
-                <label><Phone size={14} /> Phone Number</label>
-                <input 
-                  type="text" 
-                  placeholder="+977-98XXXXXXXX"
-                  value={formData.phone} 
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                />
-              </div>
-
-              <div className="input-group-managed">
-                <label><MapPin size={14} /> Primary Location</label>
-                <input 
-                  type="text" 
-                  value={formData.address} 
-                  onChange={(e) => setFormData({...formData, address: e.target.value})} 
-                />
+              <div className="metric-box">
+                <Award size={16} className="icon-green" />
+                <div className="metric-text">
+                   <p className="m-val">{user?.co2Saved || "0.0"}kg</p>
+                   <p className="m-lab">Carbon Offset</p>
+                </div>
               </div>
             </div>
 
-            <div className="security-notice-box">
-              <h4>Security Preferences</h4>
-              <p>For password changes or role modifications, please contact Thamel HQ support.</p>
-              <button type="button" className="btn-link-indigo">Request Access Log</button>
+            <div className="sidebar-security-badge">
+              <ShieldCheck size={14} />
+              <span>Identity Verified Member</span>
             </div>
+          </aside>
 
-            <button type="submit" className="btn-save-profile" disabled={loading}>
-              {loading ? "Processing..." : <><Save size={20}/> Save Changes</>}
-            </button>
-          </form>
-        </main>
+          {/* --- RIGHT SIDE: SETTINGS ENGINE --- */}
+          <main className="profile-settings-main">
+            <section className="settings-section">
+              <h3 className="section-title">Personal <span className="highlight">Details</span></h3>
+              <form onSubmit={handleUpdate} className="settings-form">
+                <div className="form-input-grid">
+                  <div className="form-group">
+                    <label><User size={14} /> Full Name</label>
+                    <input 
+                      type="text" 
+                      value={formData.name} 
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      placeholder="Petter..."
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label><Mail size={14} /> Email (Verified)</label>
+                    <input type="email" value={user?.email || ""} disabled className="input-locked" />
+                  </div>
+                  <div className="form-group">
+                    <label><Phone size={14} /> Mobile Number</label>
+                    <input 
+                      type="text" 
+                      value={formData.phone} 
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      placeholder="+977..."
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label><MapPin size={14} /> Primary Address</label>
+                    <input 
+                      type="text" 
+                      value={formData.address} 
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      placeholder="Kathmandu..."
+                    />
+                  </div>
+                </div>
+                
+                <button type="submit" className="btn-save-premium" disabled={loading}>
+                  {loading ? "Syncing..." : <><Save size={18} /> Update Profile</>}
+                </button>
+              </form>
+            </section>
+
+            {/* --- MARKETPLACE ADD-ONS --- */}
+            <section className="settings-section extra-options">
+              <h3 className="section-title">Preferences</h3>
+              <div className="toggle-list">
+                <div className="toggle-item">
+                  <div className="toggle-info">
+                    <Bell size={18} />
+                    <span>Push Notifications</span>
+                  </div>
+                  <div className="fake-toggle active"></div>
+                </div>
+                <div className="toggle-item">
+                  <div className="toggle-info">
+                    <Lock size={18} />
+                    <span>Two-Factor Auth</span>
+                  </div>
+                  <div className="fake-toggle"></div>
+                </div>
+              </div>
+            </section>
+          </main>
+
+        </div>
       </div>
     </div>
   );

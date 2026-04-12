@@ -1,24 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axiosConfig';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BarChart, Bar, Tooltip, ResponsiveContainer, Cell 
-} from 'recharts';
+import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Plus, Edit, Trash2, X, Save, Wallet, Activity, 
-  UploadCloud, ShieldCheck, Zap, Loader2, LayoutGrid
+  UploadCloud, ShieldCheck, Zap, Loader2, LayoutGrid, CheckCircle2 
 } from 'lucide-react';
 import "../styles/OwnerDashboard.css";
 
 const OwnerDashboard = () => {
   const [data, setData] = useState({ stats: {}, revenueTrend: [], myBikes: [], activeRentals: [] });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showRegSuccess, setShowRegSuccess] = useState(false); 
   const [editMode, setEditMode] = useState(false);
   
   const [formData, setFormData] = useState({
-    _id: '', name: '', brand: '', price: '', type: 'Commuter', cc: '150cc', images: [''], available: true
+    _id: '', name: '', brand: '', price: '', type: 'Commuter', cc: '150cc', images: [''], available: true, description: ''
   });
 
   const fetchOwnerStats = useCallback(async () => {
@@ -27,14 +25,14 @@ const OwnerDashboard = () => {
       const res = await api.get('/owner/dashboard');
       if (res.data.success) setData(res.data);
     } catch (err) {
-      setError("Failed to load dashboard data.");
+      console.error("Dashboard Load Failed");
     } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchOwnerStats(); }, [fetchOwnerStats]);
 
   const handleImageUpload = () => {
-    if (!window.cloudinary) return alert("Upload service not ready.");
+    if (!window.cloudinary) return alert("Cloudinary service not ready.");
     window.cloudinary.openUploadWidget({
       cloudName: "dlkwoqzq8", uploadPreset: "fleet_preset", sources: ["local", "url"]
     }, (error, result) => {
@@ -51,7 +49,7 @@ const OwnerDashboard = () => {
     } else {
       setEditMode(false);
       const newId = "B-" + Math.floor(1000 + Math.random() * 9000);
-      setFormData({ _id: newId, name: '', brand: '', price: '', type: 'Commuter', cc: '150cc', images: [''], available: true });
+      setFormData({ _id: newId, name: '', brand: '', price: '', type: 'Commuter', cc: '150cc', images: [''], available: true, description: '' });
     }
     setIsModalOpen(true);
   };
@@ -59,17 +57,22 @@ const OwnerDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editMode) await api.put(`/owner/bike/${formData._id}`, formData);
-      else await api.post('/owner/add-bike', formData);
+      if (editMode) {
+        await api.put(`/owner/bike/${formData._id}`, formData);
+      } else {
+        await api.post('/owner/add-bike', formData);
+      }
       setIsModalOpen(false);
+      setShowRegSuccess(true);
       fetchOwnerStats();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to save bike.");
+      // Detailed error capture
+      alert(err.response?.data?.message || "Failed to save bike. Check console.");
     }
   };
 
   const deleteBike = async (id) => {
-    if (window.confirm("Are you sure you want to delete this bike?")) {
+    if (window.confirm("Confirm deletion?")) {
       try {
         await api.delete(`/owner/bike/${id}`);
         fetchOwnerStats();
@@ -77,136 +80,92 @@ const OwnerDashboard = () => {
     }
   };
 
-  if (loading) return (
-    <div className="premium-loader">
-      <Loader2 className="spinner-icon" size={48} />
-      <p>Loading Dashboard...</p>
-    </div>
-  );
+  if (loading) return <div className="bento-loader"><Loader2 className="spinner-icon" size={48} /><p>Syncing...</p></div>;
 
   return (
-    <div className="owner-root">
-      <header className="owner-header">
-        <div className="header-text">
-          <span className="badge-live">Online</span>
-          <h1>My <span className="gradient-text">Dashboard</span></h1>
-          <p>Owner ID: {data.ownerId || 'User-42'}</p>
-        </div>
-        <div className="header-btns">
-          <button className="btn-secondary" onClick={() => alert("Payout requested")}><Wallet size={18} /> Payout</button>
-          <button className="btn-primary" onClick={() => openModal()}><Plus size={20} /> Add Bike</button>
-        </div>
-      </header>
+    <div className="owner-bento-root">
+      <div className="bento-container">
+        <header className="bento-header">
+          <div className="welcome-text">
+            <span className="live-pill"><span className="pulse-dot"></span> System Live</span>
+            <h1>Fleet <span className="gradient-text">Command</span></h1>
+          </div>
+          <div className="header-actions">
+            <button className="btn-bento-primary" onClick={() => openModal()}><Plus size={20} /> Register Bike</button>
+          </div>
+        </header>
 
-      {/* KPI SECTION */}
-      <div className="kpi-grid">
-        <StatCard label="Total Earnings" val={`Rs. ${data.stats?.earnings || 0}`} icon={<ShieldCheck/>} color="#6366f1" />
-        <StatCard label="Active Bookings" val={data.stats?.activeRentals || 0} icon={<Zap/>} color="#10b981" />
-        <StatCard label="My Bikes" val={data.stats?.totalBikes || 0} icon={<LayoutGrid/>} color="#f59e0b" />
+        <div className="bento-grid">
+          <StatCard label="Total Revenue" val={`Rs. ${data.stats?.earnings?.toLocaleString() || 0}`} icon={<Wallet/>} color="#6366f1" />
+          <StatCard label="Active" val={data.stats?.activeRentals || 0} icon={<Zap/>} color="#10b981" />
+          <StatCard label="Fleet Size" val={data.stats?.totalBikes || 0} icon={<LayoutGrid/>} color="#f59e0b" />
+        </div>
+
+        <main className="dashboard-main">
+          <div className="inventory-section">
+            <div className="section-head">
+              <h3>Registered Assets</h3>
+              <button onClick={fetchOwnerStats} className="sync-btn"><Activity size={14}/> Refresh</button>
+            </div>
+            <div className="asset-list-scroll">
+              {data.myBikes?.length > 0 ? data.myBikes.map(bike => (
+                <div key={bike._id} className="fleet-row-item">
+                  <img src={bike.images?.[0] || '/images/default-bike.jpg'} alt="" />
+                  <div className="item-details">
+                    <h4>{bike.name} <small>({bike.brand})</small></h4>
+                    <p>{bike._id} • {bike.cc} • {bike.type}</p>
+                  </div>
+                  <span className={bike.available ? 's-badge-on' : 's-badge-off'}>{bike.available ? 'Ready' : 'Rented'}</span>
+                  <div className="item-btns">
+                    <button onClick={() => openModal(bike)} className="btn-edit"><Edit size={16}/></button>
+                    <button onClick={() => deleteBike(bike._id)} className="btn-trash"><Trash2 size={16}/></button>
+                  </div>
+                </div>
+              )) : <p className="empty-msg">No bikes found in your inventory.</p>}
+            </div>
+          </div>
+        </main>
       </div>
 
-      <main className="dashboard-content">
-        {/* INVENTORY */}
-        <div className="inventory-pane">
-          <div className="pane-header">
-            <h3>My Bikes</h3>
-            <button onClick={fetchOwnerStats} className="refresh-link">Refresh List</button>
-          </div>
-          <div className="asset-grid">
-            {data.myBikes?.length > 0 ? data.myBikes.map(bike => (
-              <motion.div whileHover={{ y: -8 }} key={bike._id} className="asset-card">
-                <div className="asset-img">
-                  <img src={bike.images?.[0] || 'default.jpg'} alt="" />
-                  <div className={`tag ${bike.available ? 'online' : 'busy'}`}>
-                    {bike.available ? 'Available' : 'Rented'}
-                  </div>
-                </div>
-                <div className="asset-info">
-                  <h4>{bike.name} <span>{bike.brand}</span></h4>
-                  <div className="asset-footer">
-                    <span className="price">Rs. {bike.price}</span>
-                    <div className="asset-actions">
-                      <button onClick={() => openModal(bike)} className="edit" title="Edit"><Edit size={16}/></button>
-                      <button onClick={() => deleteBike(bike._id)} className="trash" title="Delete"><Trash2 size={16}/></button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )) : <p className="empty-msg">No bikes added yet.</p>}
-          </div>
-        </div>
-
-        {/* SIDEBAR */}
-        <div className="side-pane">
-           <div className="glass-card">
-              <h3>Income Flow</h3>
-              <div className="chart-box">
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={data.revenueTrend?.length > 0 ? data.revenueTrend : [{day: 'N/A', amount: 0}]}>
-                    <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                      {data.revenueTrend?.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index === data.revenueTrend.length - 1 ? '#6366f1' : '#e2e8f0'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-           </div>
-
-           <div className="glass-card mt-20">
-              <h3>Recent Rentals</h3>
-              <div className="event-list">
-                {data.activeRentals?.length > 0 ? data.activeRentals.map(rental => (
-                  <div key={rental._id} className="event-item">
-                    <div className="event-dot"></div>
-                    <div className="event-details">
-                      <p><strong>{rental.user?.name}</strong> rented <strong>{rental.bikes?.[0]?.name}</strong></p>
-                      <span>{new Date(rental.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                )) : <p className="empty-msg">No active rentals.</p>}
-              </div>
-           </div>
-        </div>
-      </main>
-
-      {/* MODAL */}
+      {/* REGISTRATION MODAL */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="premium-overlay">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="premium-modal">
-              <div className="modal-top">
-                <h2>{editMode ? 'Edit Bike' : 'Add New Bike'}</h2>
+          <div className="bento-overlay" onClick={() => setIsModalOpen(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bento-modal" onClick={(e)=>e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{editMode ? 'Refine' : 'Register'} Bike</h2>
                 <button onClick={() => setIsModalOpen(false)}><X /></button>
               </div>
-              <form onSubmit={handleSubmit} className="premium-form">
-                <div className="form-row">
-                  <div className="f-group">
-                    <label>Bike Name</label>
-                    <input value={formData.name} onChange={(e)=>setFormData({...formData, name:e.target.value})} required placeholder="e.g. Pulsar 220" />
-                  </div>
-                  <div className="f-group">
-                    <label>Brand</label>
-                    <input value={formData.brand} onChange={(e)=>setFormData({...formData, brand:e.target.value})} required placeholder="e.g. Bajaj" />
-                  </div>
+              <form onSubmit={handleSubmit} className="bento-form">
+                <div className="form-split">
+                  <div className="input-group"><label>Model Name</label><input value={formData.name} onChange={(e)=>setFormData({...formData, name:e.target.value})} required /></div>
+                  <div className="input-group"><label>Brand</label><input value={formData.brand} onChange={(e)=>setFormData({...formData, brand:e.target.value})} required /></div>
                 </div>
-                <div className="form-row">
-                  <div className="f-group">
-                    <label>Daily Price (NPR)</label>
-                    <input type="number" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
-                  </div>
-                  <div className="f-group">
-                    <label>Engine (CC)</label>
-                    <input value={formData.cc} onChange={(e)=>setFormData({...formData, cc:e.target.value})} placeholder="e.g. 220cc" />
-                  </div>
+                <div className="form-split">
+                  <div className="input-group"><label>Price (NPR)</label><input type="number" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required /></div>
+                  <div className="input-group"><label>Engine (CC)</label><input value={formData.cc} onChange={(e)=>setFormData({...formData, cc:e.target.value})} required /></div>
                 </div>
-                <div className="f-group">
-                  <button type="button" className="upload-trigger" onClick={handleImageUpload}>
-                    <UploadCloud size={20} /> {formData.images[0] ? "Image Uploaded" : "Upload Bike Photo"}
-                  </button>
+                <div className="input-group">
+                  <label>Description</label>
+                  <textarea value={formData.description} onChange={(e)=>setFormData({...formData, description:e.target.value})} placeholder="Condition, mileage, etc." />
                 </div>
-                <button type="submit" className="submit-btn"><Save size={18} /> Save Bike</button>
+                <div className="upload-btn-zone" onClick={handleImageUpload}>
+                  <UploadCloud size={24} />
+                  <span>{formData.images[0] ? "Image Synchronized" : "Upload HD Photo"}</span>
+                </div>
+                <button type="submit" className="bento-save-btn"><Save size={18} /> Save to Fleet</button>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {showRegSuccess && (
+          <div className="bento-overlay">
+            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="bento-success-card">
+              <div className="success-icon-box"><CheckCircle2 size={50} color="#10b981" /></div>
+              <h2>Fleet Synchronized</h2>
+              <p>Asset <strong>{formData.name}</strong> is now live in the marketplace.</p>
+              <button className="bento-close-btn" onClick={() => setShowRegSuccess(false)}>Return to Base</button>
             </motion.div>
           </div>
         )}
@@ -216,12 +175,9 @@ const OwnerDashboard = () => {
 };
 
 const StatCard = ({ label, val, icon, color }) => (
-  <div className="kpi-card">
-    <div className="kpi-icon" style={{ backgroundColor: `${color}15`, color: color }}>{icon}</div>
-    <div className="kpi-val">
-      <small>{label}</small>
-      <h3>{val}</h3>
-    </div>
+  <div className="bento-stat-card">
+    <div className="bento-stat-icon" style={{ backgroundColor: `${color}15`, color }}>{icon}</div>
+    <div className="bento-stat-data"><small>{label}</small><h3>{val}</h3></div>
   </div>
 );
 

@@ -7,36 +7,32 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // 1️⃣ LOADING GUARD: Wait for the app to check if we are logged in
+  // 1. Wait for the API to confirm who the user is
   if (loading) {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <Loader2 className="animate-spin" size={40} color="#6366f1" />
-        <p>Verifying Session...</p>
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' }}>
+        <Loader2 className="animate-spin" size={48} color="#6366f1" />
       </div>
     );
   }
 
-  // 2️⃣ AUTHENTICATION CHECK: If no user, go to login
+  // 2. If the user isn't logged in, send them to login
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3️⃣ ROLE CHECK: Use the role directly from the AuthContext user object
-  const userRole = user.role;
+  // 3. Strict Role Check
+  const userRole = user.role?.toLowerCase();
+  const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase());
 
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
-    // If they are logged in but don't have permission for this specific page, 
-    // send them to their own dashboard instead of logging them out.
-    const redirectPath = 
-      userRole === 'admin' ? '/admin/dashboard' : 
-      userRole === 'owner' ? '/owner-dashboard' : 
-      '/customer';
-      
-    return <Navigate to={redirectPath} replace />;
+  // 🚨 If the user's role is NOT in the allowed list, they get KICKED to their dashboard
+  if (!normalizedAllowedRoles.includes(userRole)) {
+    console.warn(`Unauthorized Access: ${userRole} tried to enter ${location.pathname}`);
+    const fallback = userRole === 'owner' ? '/owner-dashboard' : '/customer';
+    return <Navigate to={fallback} replace />;
   }
 
-  // ✅ SUCCESS: Allow access to the page
+  // ✅ Success: Render the page
   return children;
 };
 

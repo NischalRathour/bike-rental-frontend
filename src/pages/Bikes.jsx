@@ -20,27 +20,27 @@ const Bikes = () => {
   const bikes = [
     { 
       _id: "b1", name: "Royal Enfield Hunter 350", price: 1200, type: "Cruiser", rating: 4.8, cc: "350cc",
-      images: ["https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1000"]
+      images: ["/images/royal-enfield-1.jpg"]
     },
     { 
-      _id: "b2", name: "Ducati Panigale V4 S", price: 5000, type: "Sport", rating: 5.0, cc: "1103cc",
-      images: ["https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?q=80&w=1000"]
+      _id: "b2", name: "KTM-DUKE", price: 5000, type: "Sport", rating: 5.0, cc: "1103cc",
+      images: ["/images/ktm-duke-2.jpg"]
     },
     { 
-      _id: "b3", name: "Triumph Tiger 900", price: 3500, type: "Adventure", rating: 4.9, cc: "888cc",
-      images: ["https://images.unsplash.com/photo-1591637333184-19aa84b3e01f?q=80&w=1000"]
+      _id: "b3", name: "Honda CB 350", price: 3500, type: "Adventure", rating: 4.9, cc: "888cc",
+      images: ["/images/honda-cb350-1.jpg"]
     },
     { 
       _id: "b4", name: "Bajaj Pulsar N160", price: 900, type: "Commuter", rating: 4.6, cc: "160cc",
-      images: ["https://images.unsplash.com/photo-1622185135505-2d795003994a?q=80&w=1000"]
+      images: ["/images/bajaj-pulsar-1.jpg"]
     },
     { 
-      _id: "b5", name: "Harley Fat Bob", price: 4500, type: "Cruiser", rating: 4.9, cc: "1868cc",
-      images: ["https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?q=80&w=1000"]
+      _id: "b5", name: "Yamaha R15", price: 4500, type: "Cruiser", rating: 4.9, cc: "1868cc",
+      images: ["/images/bike1.jpg"]
     },
     { 
     _id: "b9", name: "KTM RC 390 GP", price: 2100, type: "Sport", rating: 4.9, cc: "373cc",
-    images: ["https://images.unsplash.com/photo-1601614742680-e88ed796903d?auto=format&fit=crop&q=80&w=1000"]
+    images: ["/images/ktm-duke-3.jpg"]
   }
   ];
 

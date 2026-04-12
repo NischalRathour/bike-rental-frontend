@@ -16,7 +16,7 @@ import AdminLayout from "./components/AdminLayout";
 // Page Imports
 import Home from "./pages/Home";
 import HireRates from "./pages/HireRates"; 
-import Bikes from "./pages/Bikes";          
+import Bikes from "./pages/Bikes";           
 import Tours from "./pages/Tours"; 
 import Gallery from "./pages/Gallery"; 
 import Blog from "./pages/Blog"; 
@@ -30,7 +30,10 @@ import Register from "./pages/Register";
 import OtpVerification from "./pages/OtpVerification";
 import ForgotPassword from "./pages/ForgotPassword"; 
 import PaymentPage from "./pages/PaymentPage";
-import Account from "./pages/Account"; 
+
+// ✅ UPDATED: Importing your Premium Profile component
+import Profile from "./pages/Profile"; 
+
 import CustomerDashboard from './pages/CustomerDashboard';
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBikes from "./pages/AdminBikes"; 
@@ -52,7 +55,7 @@ const AppContent = () => {
 
   return (
     <>
-      {/* 🛑 SESSION EXPIRED TOAST (When user is kicked out) */}
+      {/* 🛑 SESSION EXPIRED TOAST */}
       {sessionExpired && (
         <div style={{
           position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
@@ -71,7 +74,7 @@ const AppContent = () => {
         </div>
       )}
 
-      {/* 🚨 GLOBAL SESSION TIMEOUT WARNING (60s before expiry) */}
+      {/* 🚨 SESSION TIMEOUT WARNING */}
       {showTimeoutWarning && !sessionExpired && (
         <div style={{
           position: 'fixed', top: '25px', left: '50%', transform: 'translateX(-50%)',
@@ -115,14 +118,19 @@ const AppContent = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin-login" element={<AdminLogin />} />
 
+            {/* --- PROTECTED DASHBOARD ROUTES --- */}
             <Route path="/customer" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><CustomerDashboard /></ProtectedRoute>} />
-            <Route path="/account" element={<ProtectedRoute allowedRoles={['customer', 'admin', 'owner']}><Account /></ProtectedRoute>} />
+            <Route path="/owner-dashboard" element={<ProtectedRoute allowedRoles={['owner']}><OwnerDashboard /></ProtectedRoute>} />
+
+            {/* ✅ UPDATED: Using the Premium Profile Component for the /account route */}
+            <Route path="/account" element={<ProtectedRoute allowedRoles={['customer', 'admin', 'owner']}><Profile /></ProtectedRoute>} />
+            
             <Route path="/my-bookings" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><MyBookings /></ProtectedRoute>} />
             <Route path="/book/:id" element={<ProtectedRoute allowedRoles={['customer']}><Booking /></ProtectedRoute>} />
             <Route path="/payment/:bookingId" element={<ProtectedRoute allowedRoles={['customer']}><PaymentPage /></ProtectedRoute>} />
             <Route path="/booking-confirmation" element={<ProtectedRoute allowedRoles={['customer']}><BookingConfirmation /></ProtectedRoute>} />
-            <Route path="/owner-dashboard" element={<ProtectedRoute allowedRoles={['owner']}><OwnerDashboard /></ProtectedRoute>} />
 
+            {/* --- ADMIN SUBSYSTEM --- */}
             <Route element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
                 <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
