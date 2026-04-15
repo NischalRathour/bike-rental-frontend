@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
 import { 
   CheckCircle, Calendar, MapPin, 
-  Clock, LayoutDashboard, Bike, Download, ShieldCheck, Printer, Smartphone, ChevronRight
+  Clock, LayoutDashboard, Bike, Download, ShieldCheck, Printer, Smartphone, Users
 } from "lucide-react";
 import "../styles/BookingConfirmation.css";
 
@@ -21,11 +21,9 @@ const BookingConfirmation = () => {
 
   useEffect(() => {
     if (details) {
-      // Premium Multi-burst Confetti
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
       const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
       const interval = setInterval(function() {
@@ -45,132 +43,79 @@ const BookingConfirmation = () => {
     </div>
   );
 
-  const qrData = `BOOKING_ID:${details.bookingId}|UNIT:${details.bikeName}|STATUS:PAID`;
+  const qrData = `ID:${details.bookingId}|TYPE:${details.bookingType}`;
 
   return (
     <div className="confirmation-page-root">
       <div className="conf-container-max">
-        
-        {/* --- 🖥️ SCREEN HERO (HIDDEN ON PRINT) --- */}
         <header className="conf-hero no-print">
-          <motion.div 
-            initial={{ scale: 0, rotate: -180 }} 
-            animate={{ scale: 1, rotate: 0 }} 
-            className="success-icon-wrapper"
-          >
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="success-icon-wrapper">
             <CheckCircle size={80} color="#10b981" />
           </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-          >
-            Ride <span className="text-indigo">Secured.</span>
-          </motion.h1>
-          <p>Your premium machine is prepped and awaiting your arrival at Thamel Hub.</p>
+          <h1>Ride <span className="text-indigo">Secured.</span></h1>
+          <p>Your {details.bookingType === 'Group' ? 'fleet is' : 'machine is'} prepped for Thamel Hub pickup.</p>
         </header>
 
-        {/* --- 📄 THE PRINTABLE INVOICE CARD --- */}
         <div className="premium-receipt-card printable-area">
-          
-          {/* 🖨️ BUSINESS HEADER (PRINT ONLY) */}
           <div className="print-header">
              <div className="p-brand-section">
-                <h2>RIDE N ROAR <span>KTM</span></h2>
-                <p>Official Rental Invoice & Pickup Pass</p>
-                <p className="p-small">Thamel-26, Kathmandu | +977-9843360610</p>
+                <h2>RIDE N ROAR Nepal</h2>
+                <p>Official Pickup Pass</p>
              </div>
              <div className="p-meta-section">
-                <div className="p-status-pill">FULLY PAID</div>
+                <div className="p-status-pill">PAID</div>
                 <p>Invoice #: {details.bookingId?.slice(-8).toUpperCase()}</p>
-                <p>Issued: {new Date().toLocaleDateString()}</p>
              </div>
-          </div>
-
-          {/* SIDEBAR VISUAL (HIDDEN ON PRINT) */}
-          <div className="receipt-visual no-print">
-            <img src={details.bikeImage || "/default-bike.jpg"} alt={details.bikeName} />
-            <div className="glass-overlay">
-                <div className="badge-confirmed">CONFIRMED</div>
-            </div>
           </div>
 
           <div className="receipt-details">
             <div className="receipt-header-main">
               <div className="unit-info">
-                <span className="label-tiny">ASSIGNED UNIT</span>
-                <h3>{details.bikeName}</h3>
-                <span className="label-ref">Ref: #{details.bookingId?.slice(-12)}</span>
+                <span className="label-tiny">BOOKING TYPE</span>
+                <h3>{details.bookingType === 'Group' ? 'Group Expedition' : 'Solo Ride'}</h3>
+                <span className="label-ref">Units: {details.bikeName}</span>
               </div>
               <div className="qr-container">
-                <QRCodeSVG value={qrData} size={90} level="H" includeMargin={true} />
-                <span className="qr-subtext">Pickup QR Pass</span>
+                <QRCodeSVG value={qrData} size={90} level="H" />
               </div>
             </div>
 
             <div className="receipt-grid">
               <div className="grid-item">
-                <div className="icon-box"><Calendar size={20}/></div>
+                <Calendar size={20}/>
                 <div className="g-content">
                   <label>Pickup Date</label>
-                  <strong>{new Date(details.startDate).toLocaleDateString('en-NP', {day: 'numeric', month: 'long', year: 'numeric'})}</strong>
+                  <strong>{new Date(details.startDate).toLocaleDateString()}</strong>
                 </div>
               </div>
               <div className="grid-item">
-                <div className="icon-box"><Clock size={20}/></div>
+                <Clock size={20}/>
                 <div className="g-content">
                   <label>Return Date</label>
-                  <strong>{new Date(details.endDate).toLocaleDateString('en-NP', {day: 'numeric', month: 'long', year: 'numeric'})}</strong>
-                </div>
-              </div>
-              <div className="grid-item">
-                <div className="icon-box"><MapPin size={20}/></div>
-                <div className="g-content">
-                  <label>Pickup Hub</label>
-                  <strong>Thamel Base Station, Kathmandu</strong>
-                </div>
-              </div>
-              <div className="grid-item">
-                <div className="icon-box"><ShieldCheck size={20}/></div>
-                <div className="g-content">
-                  <label>Protection Status</label>
-                  <strong className="text-success">Verified & Fully Insured</strong>
+                  <strong>{new Date(details.endDate).toLocaleDateString()}</strong>
                 </div>
               </div>
             </div>
 
             <div className="receipt-footer-new">
               <div className="total-box">
-                <span className="label-tiny">TOTAL TRANSACTION</span>
+                <span className="label-tiny">TOTAL PAID</span>
                 <div className="price-grand">Rs. {details.totalPrice?.toLocaleString()}</div>
               </div>
-              <div className="instruction-card no-print">
-                 <Smartphone size={20} className="text-indigo" />
-                 <p>Show this digital pass to the hub manager for express checkout.</p>
-              </div>
-            </div>
-
-            {/* LEGAL TERMS (PRINT ONLY) */}
-            <div className="print-footer-legal">
-               <p><strong>Security Deposit:</strong> A valid original ID and refundable security amount are required at pickup. </p>
-               <p><strong>Cancellation:</strong> 24h notice required for 80% refund. No-show results in forfeit.</p>
-               <div className="auth-sign-box">Authorized Hub Signature</div>
             </div>
           </div>
         </div>
 
-        {/* --- 🧭 NAVIGATION ACTION ROW (HIDDEN ON PRINT) --- */}
         <div className="conf-navigation-v2 no-print">
           <Link to="/customer" className="action-btn-secondary">
             <LayoutDashboard size={20}/>
-            <span>Back to Dashboard</span>
+            <span>Dashboard</span>
           </Link>
           <button className="action-btn-primary" onClick={() => window.print()}>
             <Printer size={20}/>
-            <span>Download PDF Invoice</span>
-            <Download size={16} className="dl-icon" />
+            <span>Print Invoice</span>
           </button>
         </div>
-
       </div>
     </div>
   );
