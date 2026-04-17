@@ -4,7 +4,7 @@ import api from '../api/axiosConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bike, Calendar, Trash2, Check, ArrowRight, 
-  Users, Gauge, MapPin, CheckCircle, X, AlertCircle 
+  Users, Gauge, MapPin, CheckCircle, X, AlertCircle, Sparkles, Fuel
 } from 'lucide-react';
 import "../styles/Booking.css";
 
@@ -13,8 +13,6 @@ const Booking = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  
-  // ✅ Mode detection: 'solo' or 'group'
   const mode = searchParams.get('mode') || 'solo'; 
 
   const [bikes, setBikes] = useState([]);
@@ -31,7 +29,6 @@ const Booking = () => {
         const dbBikes = res.data.bikes || res.data;
         setBikes(dbBikes);
         
-        // Auto-select the bike from URL if the cart is empty
         if (id && cart.length === 0) {
           const target = dbBikes.find(b => String(b._id) === String(id));
           if (target) setCart([target]);
@@ -39,16 +36,15 @@ const Booking = () => {
       } catch (err) {
         console.error("Fleet sync failed");
       } finally {
-        setLoading(false);
+        setTimeout(() => setLoading(false), 800);
       }
     };
     syncFleet();
   }, [id]);
 
-  // ✅ LOGIC: Group Selection Toggle
   const toggleSelection = (bike) => {
     if (mode === 'solo') {
-      setCart([bike]); // In solo, clicking another bike just replaces the current one
+      setCart([bike]);
     } else {
       const exists = cart.find(b => b._id === bike._id);
       setCart(exists ? cart.filter(i => i._id !== bike._id) : [...cart, bike]);
@@ -88,83 +84,103 @@ const Booking = () => {
     }
   };
 
-  if (loading) return <div className="booking-loading-screen"><div className="loader-pulse"></div></div>;
+  if (loading) return (
+    <div className="booking-loading-screen">
+      <div className="premium-loader">
+        <div className="inner-ring"></div>
+        <Sparkles className="loader-icon" />
+      </div>
+      <p>Curating your experience...</p>
+    </div>
+  );
 
   return (
     <div className="booking-v2-root">
-      {/* 📅 SHARED DATE BAR */}
-      <section className="booking-action-bar">
-        <div className="action-bar-container">
-          <div className="action-title">
-            <h2>{mode === 'solo' ? 'Solo Ride Dates' : 'Group Expedition Dates'}</h2>
+      {/* 📅 NAVIGATION & DATE ORCHESTRATOR */}
+      <section className="booking-top-nav">
+        <div className="nav-inner container-max">
+          <div className="nav-title-group">
+             <span className="mode-pill">{mode === 'solo' ? 'Solo' : 'Group'} Journey</span>
+             <h2>{mode === 'solo' ? 'Finalize Selection' : 'Fleet Orchestration'}</h2>
           </div>
-          <div className="date-orchestrator">
-            <div className="date-chip">
-              <Calendar size={18}/>
+
+          <div className="date-orchestrator-v3">
+            <div className="date-box">
+              <Calendar size={16} />
               <input type="date" value={dates.start} min={new Date().toISOString().split('T')[0]} onChange={(e) => setDates({...dates, start: e.target.value})} />
             </div>
-            <ArrowRight size={18} />
-            <div className="date-chip">
-              <Calendar size={18}/>
+            <div className="date-sep"><ArrowRight size={16} /></div>
+            <div className="date-box">
+              <Calendar size={16} />
               <input type="date" value={dates.end} min={dates.start || new Date().toISOString().split('T')[0]} onChange={(e) => setDates({...dates, end: e.target.value})} />
             </div>
           </div>
         </div>
       </section>
 
-      <main className="booking-v2-layout">
-        <section className="fleet-grid-section">
-          
-          {/* ✅ DYNAMIC VIEW LOGIC */}
+      <main className="booking-v2-main container-max">
+        {/* 🏍️ LEFT SIDE: SELECTION */}
+        <section className="selection-area">
           {mode === 'solo' ? (
-            <div className="solo-exclusive-view">
-              <div className="section-intro">
-                <h1>Confirm Solo Selection</h1>
-                <p>Review your selected machine for the Kathmandu valley ride.</p>
-              </div>
+            <div className="solo-focus-layout">
               {cart[0] ? (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="solo-final-card-premium">
-                  <img src={cart[0].images?.[0]} alt="Bike" />
-                  <div className="solo-details">
-                    <div className="badge-confirmed"><CheckCircle size={14}/> Verified Unit</div>
-                    <h2>{cart[0].name}</h2>
-                    <div className="solo-specs-list">
-                      <span>{cart[0].cc}cc</span> • <span>{cart[0].type}</span>
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="solo-premium-card">
+                  <div className="solo-media">
+                    <img src={cart[0].images?.[0] || "/images/default-bike.jpg"} alt="Selected" />
+                    <div className="media-overlay">
+                       <div className="verified-chip"><CheckCircle size={14} /> Ready for Dispatch</div>
                     </div>
-                    <div className="solo-price-highlight">Rs. {cart[0].price} / Day</div>
-                    <Link to={`/book/${id}?mode=group`} className="mode-switch-link">
-                      <Users size={16} /> Need more bikes for a team ride?
+                  </div>
+                  <div className="solo-content">
+                    <div className="content-header">
+                      <h3>{cart[0].name}</h3>
+                      <p className="type-label">{cart[0].type} • Premium Grade</p>
+                    </div>
+                    <div className="specs-grid">
+                      <div className="spec-item"><Gauge size={18} /> <span>{cart[0].cc}cc Displacement</span></div>
+                      <div className="spec-item"><Fuel size={18} /> <span>Standard Fuel</span></div>
+                      <div className="spec-item"><MapPin size={18} /> <span>Kathmandu Hub</span></div>
+                    </div>
+                    <div className="price-anchor">
+                       <span className="p-val">Rs. {cart[0].price}</span>
+                       <span className="p-unit">/ Day</span>
+                    </div>
+                    <Link to={`/book/${id}?mode=group`} className="btn-switch-mode">
+                       <Users size={16} /> Orchestrate a Group Trip instead?
                     </Link>
                   </div>
                 </motion.div>
               ) : (
-                <div className="error-msg">Bike not found. Please return to <Link to="/bikes">Fleet</Link>.</div>
+                <div className="empty-state-card">
+                   <AlertCircle size={48} />
+                   <p>Machine not found. Return to showroom.</p>
+                   <Link to="/bikes">View Fleet</Link>
+                </div>
               )}
             </div>
           ) : (
-            /* 👥 FULL GROUP SELECTION GRID */
-            <div className="group-selection-view">
-              <div className="section-intro">
-                <h1>Build Your Team Fleet</h1>
-                <p>Click on the bikes below to add them to your group booking.</p>
+            <div className="group-grid-layout">
+              <div className="group-header">
+                <h3>Select Your Squad's Machines</h3>
+                <p>Click machines to add or remove from your fleet.</p>
               </div>
-              <div className="premium-bike-grid">
+              <div className="fleet-masonry">
                 {bikes.map((bike) => (
                   <motion.div 
-                    layout
+                    whileHover={{ y: -8 }}
                     key={bike._id} 
-                    className={`bike-v2-card ${cart.find(b => b._id === bike._id) ? 'selected' : ''}`} 
+                    className={`fleet-item-card ${cart.find(b => b._id === bike._id) ? 'active' : ''}`} 
                     onClick={() => toggleSelection(bike)}
                   >
-                    <div className="card-media-box">
+                    <div className="item-media">
                       <img src={bike.images?.[0]} alt={bike.name} />
                       {cart.find(b => b._id === bike._id) && (
-                        <div className="selection-overlay"><Check size={32} color="white" /></div>
+                        <div className="item-selected-overlay"><Check size={32} /></div>
                       )}
                     </div>
-                    <div className="card-info-box">
-                      <h3>{bike.name}</h3>
-                      <p>Rs. {bike.price} <span>/day</span></p>
+                    <div className="item-info">
+                      <h4>{bike.name}</h4>
+                      <p>Rs. {bike.price} / Day</p>
                     </div>
                   </motion.div>
                 ))}
@@ -173,34 +189,52 @@ const Booking = () => {
           )}
         </section>
 
-        {/* 📋 SIDEBAR SUMMARY (Works for both) */}
-        <aside className="expedition-sidebar">
-          <div className="sidebar-inner">
-            <h3>{mode === 'solo' ? 'Solo Summary' : 'Group Summary'}</h3>
-            <div className="ledger-scroll-area">
-              {cart.length > 0 ? cart.map(b => (
-                <div key={b._id} className="ledger-pill">
-                  <span>{b.name}</span>
-                  <Trash2 size={16} className="u-del" onClick={(e) => { e.stopPropagation(); toggleSelection(b); }} />
-                </div>
-              )) : <p className="empty-text">Select bikes to start.</p>}
+        {/* 📋 RIGHT SIDE: SIDEBAR */}
+        <aside className="summary-sidebar-v3">
+          <div className="sidebar-content">
+            <div className="summary-title">
+               <h3>Expedition Summary</h3>
+               <Sparkles size={18} className="spark-icon" />
             </div>
 
-            <div className="calculation-stack">
-              <div className="calc-item">
-                <span>Mode</span>
-                <span className="mode-badge">{mode === 'solo' ? 'Solo Ride' : 'Group Expedition'}</span>
-              </div>
-              <div className="calc-item"><span>Duration</span><span>{calculateDays()} Days</span></div>
-              <div className="grand-total-box">
-                <label>Total Payment</label>
+            <div className="ledger-scroll">
+              <AnimatePresence>
+                {cart.length > 0 ? cart.map(b => (
+                  <motion.div 
+                    initial={{ x: 20, opacity: 0 }} 
+                    animate={{ x: 0, opacity: 1 }} 
+                    exit={{ x: -20, opacity: 0 }} 
+                    key={b._id} 
+                    className="ledger-item"
+                  >
+                    <div className="item-name">
+                      <div className="dot"></div>
+                      <span>{b.name}</span>
+                    </div>
+                    {mode === 'group' && <button onClick={() => toggleSelection(b)} className="del-btn"><Trash2 size={14}/></button>}
+                  </motion.div>
+                )) : <p className="ledger-empty">Your fleet is empty...</p>}
+              </AnimatePresence>
+            </div>
+
+            <div className="calculation-zone">
+              <div className="calc-row"><span>Journey Duration</span><span>{calculateDays()} Days</span></div>
+              <div className="calc-row"><span>Selection Type</span><span>{mode === 'solo' ? 'Solo' : 'Group'}</span></div>
+              
+              <div className="total-reveal">
+                <label>Total Investment</label>
                 <h2>Rs. {(calculateDays() * cart.reduce((s, b) => s + b.price, 0)).toLocaleString()}</h2>
               </div>
-            </div>
 
-            <button className="btn-finalize" onClick={handleFinalSubmit} disabled={bookingLoading}>
-              {bookingLoading ? "Finalizing..." : "Confirm & Pay Now"}
-            </button>
+              <button className="btn-confirm-final" onClick={handleFinalSubmit} disabled={bookingLoading}>
+                {bookingLoading ? (
+                  <div className="btn-loader"></div>
+                ) : (
+                  <><span>Confirm Expedition</span> <ArrowRight size={18} /></>
+                )}
+              </button>
+              <p className="secure-note">Secure checkout powered by Stripe</p>
+            </div>
           </div>
         </aside>
       </main>

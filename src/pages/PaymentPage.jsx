@@ -4,7 +4,7 @@ import paymentApi from '../api/paymentApi';
 import Payment from '../components/Payment';
 import { 
   ShieldCheck, ChevronLeft, Bike, Calendar, 
-  Cpu, Lock, Globe, CreditCard
+  Cpu, Lock, Globe, CreditCard, Sparkles, MapPin
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import "../styles/PaymentPage.css";
@@ -39,7 +39,8 @@ const PaymentPage = () => {
         startDate: booking?.startDate,
         endDate: booking?.endDate,
         totalPrice: booking?.totalPrice,
-        transactionId: paymentId
+        transactionId: paymentId,
+        bookingType: booking?.mode || 'Solo'
       };
       localStorage.setItem("latest_booking_data", JSON.stringify(confirmationData));
       navigate('/booking-confirmation', { state: confirmationData, replace: true });
@@ -51,7 +52,7 @@ const PaymentPage = () => {
   if (loading) return (
     <div className="pay-loader-hub">
       <div className="spinner-quantum"></div>
-      <p>Loading payment details...</p>
+      <p className="loading-text">AUTHENTICATING SECURE SESSION...</p>
     </div>
   );
 
@@ -61,34 +62,40 @@ const PaymentPage = () => {
         
         {/* --- LEFT: CHECKOUT AREA --- */}
         <div className="hub-main-section">
-          <button onClick={() => navigate(-1)} className="hub-back-action">
-            <ChevronLeft size={14}/> <span>Back to Booking</span>
-          </button>
+          <motion.button 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={() => navigate(-1)} 
+            className="hub-back-action"
+          >
+            <ChevronLeft size={16}/> <span>Back to Fleet</span>
+          </motion.button>
 
           <header className="hub-header">
-            <h1 className="hub-title">Secure <span className="text-indigo">Payment</span></h1>
-            <p className="hub-subtitle">Please complete your payment to confirm the rental.</p>
+            <span className="secure-tag"><Sparkles size={14}/> PREMIUM CHECKOUT</span>
+            <h1 className="hub-title">Finalize <span className="text-indigo">Reservation</span></h1>
+            <p className="hub-subtitle">Authorize your expedition by completing the secure transaction below.</p>
           </header>
 
           {/* 💳 VISUAL CREDIT CARD */}
           <div className="visa-container-compact">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
+              initial={{ opacity: 0, y: 30 }} 
+              animate={{ opacity: 1, y: 0 }} 
               className="platinum-card-visual"
             >
               <div className="p-card-top">
                 <div className="p-chip-set">
-                  <Cpu size={28} className="gold-icon" />
-                  <Globe size={14} className="nfc-icon" />
+                  <Cpu size={32} className="gold-icon" />
+                  <Globe size={16} className="nfc-icon" />
                 </div>
-                <div className="p-brand">PREMIUM MEMBER</div>
+                <div className="p-brand">ELITE MEMBER</div>
               </div>
-              <div className="p-card-number">•••• •••• •••• 8842</div>
+              <div className="p-card-number">•••• •••• •••• {bookingId?.slice(-4) || '8842'}</div>
               <div className="p-card-bottom">
                 <div className="p-meta">
-                  <label>CARD HOLDER</label>
-                  <strong>{booking?.user?.name || "Valued Rider"}</strong>
+                  <label>PASSENGER / RIDER</label>
+                  <strong>{booking?.user?.name || "Authorized Rider"}</strong>
                 </div>
                 <div className="p-card-brand-logo">
                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" />
@@ -98,7 +105,7 @@ const PaymentPage = () => {
           </div>
 
           <div className="vault-engine-wrapper">
-              <div className="terminal-label"><Lock size={12}/> ENCRYPTED CHECKOUT</div>
+              <div className="terminal-label"><Lock size={14}/> SECURE GATEWAY ENCRYPTION: ACTIVE</div>
               <Payment 
                 amount={booking?.totalPrice} 
                 bookingId={bookingId} 
@@ -111,43 +118,52 @@ const PaymentPage = () => {
         <aside className="hub-sidebar-section">
            <div className="sidebar-sticky-inner">
               <div className="invoice-header-premium">
-                <h3>Order Summary</h3>
-                <div className="badge-verified"><ShieldCheck size={12}/> SECURE</div>
+                <h3>Reservation Summary</h3>
+                <div className="badge-verified"><ShieldCheck size={14}/> VERIFIED</div>
               </div>
 
               <div className="invoice-body">
                 <div className="asset-summary-box">
-                   <div className="asset-icon"><Bike size={20}/></div>
+                   <div className="asset-icon"><Bike size={24}/></div>
                    <div className="asset-info">
-                      <label>Selected Bike</label>
-                      <p>{booking?.bikes?.[0]?.name || "Standard Model"}</p>
+                      <label>SELECTED MACHINE</label>
+                      <p>{booking?.bikes?.[0]?.name || "Premium Fleet Model"}</p>
                    </div>
                 </div>
 
                 <div className="asset-summary-box">
-                   <div className="asset-icon"><Calendar size={20}/></div>
+                   <div className="asset-icon"><Calendar size={24}/></div>
                    <div className="asset-info">
-                      <label>Rental Dates</label>
-                      <p>{new Date(booking?.startDate).toLocaleDateString()} — {new Date(booking?.endDate).toLocaleDateString()}</p>
+                      <label>EXPEDITION TIMELINE</label>
+                      <p>{new Date(booking?.startDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})} — {new Date(booking?.endDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                   </div>
+                </div>
+
+                <div className="asset-summary-box">
+                   <div className="asset-icon"><MapPin size={24}/></div>
+                   <div className="asset-info">
+                      <label>PICKUP LOCATION</label>
+                      <p>Thamel Hub HQ</p>
                    </div>
                 </div>
 
                 <div className="cost-breakdown">
-                   <div className="cost-row"><span>Service Fee</span><span className="text-free">FREE</span></div>
-                   <div className="cost-row"><span>Insurance</span><span className="text-free">INCLUDED</span></div>
+                   <div className="cost-row"><span>Platform Service Fee</span><span className="text-free">WAIVED</span></div>
+                   <div className="cost-row"><span>Insurance Policy (Premium)</span><span className="text-free">INCLUDED</span></div>
+                   <div className="cost-row"><span>Roadside Assistance</span><span className="text-free">ACTIVE</span></div>
                 </div>
 
                 <div className="total-due-area">
-                   <label>TOTAL AMOUNT</label>
+                   <label>TOTAL INVESTMENT DUE</label>
                    <h2>Rs. {booking?.totalPrice?.toLocaleString()}</h2>
                 </div>
               </div>
 
               <div className="marketplace-trust-footer">
                  <div className="trust-icons">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" height="15" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" height="20" />
                  </div>
-                 <p>Your data is protected by industry-standard encryption.</p>
+                 <p>Transactions are processed via Stripe using end-to-end 256-bit SSL encryption. No card data is stored on our servers.</p>
               </div>
            </div>
         </aside>

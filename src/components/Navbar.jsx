@@ -1,39 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
 import { 
-  User, 
-  LogOut, 
-  LayoutDashboard, 
-  ChevronDown, 
-  Bike, 
-  Settings,
-  ShieldCheck,
-  UserCircle,
-  MapPin
+  Bike, Compass, Headphones, User, 
+  LayoutDashboard, LogOut, ChevronDown, 
+  Sparkles, MapPin, ShieldCheck, Settings
 } from 'lucide-react';
-import "../styles/Navbar.css"; 
+import { useAuth } from '../context/AuthContext';
+import "../styles/Navbar.css";
 
-/**
- * 🛰️ GLOBAL NAVIGATION SUBSYSTEM
- * Logic: Synchronized with App.js routing (/account)
- */
 const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // ✨ UI Logic: Navbar transparency on scroll
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  /**
-   * 🛡️ ROLE-BASED DYNAMIC ROUTING
-   * Maps users to their specific entry points
-   */
   const getDashboardLink = () => {
     if (!user) return '/login';
     const role = user.role?.toLowerCase();
@@ -42,79 +28,91 @@ const Navbar = () => {
     return '/customer';
   };
 
+  const navLinks = [
+    { name: 'Home', path: '/', icon: <Compass size={20}/> },
+    { name: 'Bikes', path: '/bikes', icon: <Bike size={20}/> },
+    { name: 'Tours', path: '/tours', icon: <Sparkles size={20}/> },
+    { name: 'Support', path: '/contact', icon: <Headphones size={20}/> },
+  ];
+
   return (
-    <nav className={`nav-root ${isScrolled ? 'nav-active' : ''}`}>
-      <div className="nav-wrapper">
+    <nav className={`premium-nav ${isScrolled ? 'scrolled' : ''}`}>
+      <div className="nav-container">
         
-        {/* 🏁 BRAND IDENTITY */}
+        {/* 🦁 BRAND LOGO - High Visibility */}
         <Link to="/" className="brand-box">
-          <div className="brand-icon">
-            <Bike size={20} strokeWidth={2.5} />
+          <div className="logo-glow-wrapper">
+            <Bike size={26} className="logo-svg" />
           </div>
-          <div className="brand-labels">
-            <span className="brand-name">Ride N Roar</span>
-            <span className="brand-loc"><MapPin size={8} /> KATHMANDU</span>
+          <div className="brand-text">
+            <span className="brand-name">RIDE N ROAR</span>
+            <span className="brand-loc"><MapPin size={12} /> KATHMANDU</span>
           </div>
         </Link>
 
-        {/* 🧭 NAVIGATION ENGINE */}
-        <div className="nav-menu">
-          <Link to="/" className={location.pathname === '/' ? 'link-active' : ''}>Home</Link>
-          <Link to="/bikes" className={location.pathname === '/bikes' ? 'link-active' : ''}>Bikes</Link>
-          <Link to="/tours" className={location.pathname === '/tours' ? 'link-active' : ''}>Tours</Link>
-          <Link to="/contact" className={location.pathname === '/contact' ? 'link-active' : ''}>Support</Link>
+        {/* 🧭 NAVIGATION ENGINE - Bold & Clear */}
+        <div className="nav-links-wrapper">
+          {navLinks.map((link) => (
+            <Link 
+              key={link.name} 
+              to={link.path} 
+              className={`nav-pill ${location.pathname === link.path ? 'active' : ''}`}
+            >
+              <span className="nav-icon">{link.icon}</span>
+              <span className="nav-label">{link.name}</span>
+              {location.pathname === link.path && (
+                <motion.div layoutId="nav-active" className="nav-active-dot" />
+              )}
+            </Link>
+          ))}
         </div>
 
-        {/* 👤 AUTHENTICATION & PROFILE HUB */}
-        <div className="nav-side">
+        {/* 👤 AUTH HUB - User Friendly Dropdown */}
+        <div className="user-action-area">
           {!user ? (
             <div className="guest-btns">
-              <Link to="/login" className="login-link">Login</Link>
-              <Link to="/register" className="signup-btn">
-                Join <ShieldCheck size={14} />
+              <Link to="/login" className="login-link">Sign In</Link>
+              <Link to="/register" className="signup-btn-premium">
+                Join <ShieldCheck size={16} />
               </Link>
             </div>
           ) : (
-            <div className="user-group">
-              <div className="user-pill">
-                <div className="user-avatar">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : <UserCircle size={18} />}
-                </div>
-                <div className="user-meta">
-                  <span className="u-name">{user?.name?.split(' ')[0] || "Member"}</span>
-                  <span className="u-role">{user?.role}</span>
-                </div>
-                <ChevronDown size={12} className="u-arrow" />
+            <div className="profile-dropdown-trigger">
+              <div className="user-avatar-premium">
+                {user.name ? user.name.charAt(0).toUpperCase() : <User size={18} />}
               </div>
+              <div className="user-info-stack no-mobile">
+                <p className="u-welcome">Welcome,</p>
+                <p className="u-display-name">{user.name.split(' ')[0]}</p>
+              </div>
+              <ChevronDown size={16} className="drop-arrow" />
+              
+              <div className="nav-dropdown-menu">
+                 <div className="menu-profile-header">
+                    <p className="u-email-header">{user.email}</p>
+                    <span className="u-role-badge">{user.role}</span>
+                 </div>
+                 <div className="drop-divider"></div>
+                 
+                 <Link to={getDashboardLink()} className="drop-item">
+                    <LayoutDashboard size={18} /> 
+                    <span>{user.role === 'customer' ? 'My Bookings' : 'Control Center'}</span>
+                 </Link>
+                 
+                 <Link to="/account" className={`drop-item ${location.pathname === '/account' ? 'active-drop' : ''}`}>
+                    <Settings size={18} /> <span>Account Settings</span>
+                 </Link>
 
-              {/* 📂 SECURE DROPDOWN MENU */}
-              <div className="user-menu-drop">
-                <div className="menu-header">
-                   <p className="u-email-display">{user?.email}</p>
-                </div>
-                
-                <div className="menu-sep"></div>
-
-                <Link to={getDashboardLink()} className="menu-link">
-                  <LayoutDashboard size={15} /> 
-                  <span>{user?.role === 'customer' ? 'My Bookings' : 'Control Center'}</span>
-                </Link>
-
-                {/* ✅ FIX: Path synchronized with App.js (/account) */}
-                <Link to="/account" className={location.pathname === '/account' ? 'menu-link active-drop' : 'menu-link'}>
-                  <Settings size={15} /> 
-                  <span>Account Settings</span>
-                </Link>
-
-                <div className="menu-sep"></div>
-
-                <button onClick={() => logout(true)} className="menu-link out-btn">
-                  <LogOut size={15} /> <span>Terminate Session</span>
-                </button>
+                 <div className="drop-divider"></div>
+                 
+                 <button onClick={() => logout(true)} className="drop-item text-danger">
+                    <LogOut size={18} /> <span>End Session</span>
+                 </button>
               </div>
             </div>
           )}
         </div>
+
       </div>
     </nav>
   );

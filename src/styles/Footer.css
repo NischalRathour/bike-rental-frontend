@@ -1,129 +1,163 @@
+/* ============================================================
+    💎 RIDE N ROAR - ELITE MARKETPLACE FOOTER
+   ============================================================ */
+
 :root {
-  --f-bg: #0f172a;
-  --f-text: #94a3b8;
-  --f-header: #ffffff;
-  --f-accent: #6366f1;
-  --f-border: rgba(255, 255, 255, 0.08);
+    --f-bg: #020617;
+    --f-text: #64748b;
+    --f-header: #ffffff;
+    --f-accent: #6366f1;
+    --f-border: rgba(255, 255, 255, 0.05);
 }
 
 .rnr-footer-root {
-  background-color: var(--f-bg);
-  padding: 80px 0 40px 0;
-  border-top: 1px solid var(--f-border);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--f-bg);
+    padding: 100px 0 40px 0;
+    border-top: 1px solid var(--f-border);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .rnr-footer-container {
-  width: 90%;
-  max-width: 1400px;
-  margin: 0 auto;
+    width: 90%;
+    max-width: 1500px;
+    margin: 0 auto;
 }
 
-/* --- MAIN LINKS GRID --- */
+/* UPPER SECTION */
+.rnr-footer-upper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 80px;
+    border-bottom: 1px solid var(--f-border);
+    margin-bottom: 80px;
+    flex-wrap: wrap;
+    gap: 50px;
+}
+
+.rnr-f-brand-side { max-width: 450px; }
+
+.rnr-f-logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -2px;
+}
+
+.rnr-f-logo span { color: var(--f-accent); }
+
+.rnr-f-tagline {
+    margin: 20px 0 35px;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #94a3b8;
+}
+
+.rnr-newsletter-box {
+    background: rgba(255,255,255,0.03);
+    padding: 40px;
+    border-radius: 32px;
+    border: 1px solid var(--f-border);
+    max-width: 500px;
+}
+
+.rnr-newsletter-box h4 { color: #fff; margin-bottom: 10px; font-size: 1.25rem; }
+.rnr-newsletter-box p { font-size: 0.9rem; margin-bottom: 25px; color: var(--f-text); }
+
+.rnr-f-input-group {
+    display: flex;
+    background: #0f172a;
+    padding: 8px;
+    border-radius: 100px;
+    border: 1px solid var(--f-border);
+}
+
+.rnr-f-input-group input {
+    background: transparent;
+    border: none;
+    padding-left: 20px;
+    color: white;
+    flex: 1;
+    outline: none;
+}
+
+.rnr-f-btn {
+    background: var(--f-accent);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 100px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.rnr-f-btn:hover { background: #fff; color: #000; }
+
+/* GRID SECTION */
 .rnr-footer-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 Equal columns */
-  gap: 40px;
-  padding-bottom: 60px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    padding-bottom: 80px;
 }
 
 .rnr-f-col h4 {
-  color: var(--f-header);
-  font-size: 1rem;
-  font-weight: 800;
-  margin-bottom: 25px;
-  letter-spacing: -0.2px;
+    color: var(--f-header);
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
 }
 
-.rnr-f-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.rnr-f-links { list-style: none; padding: 0; }
+.rnr-f-links li { margin-bottom: 15px; }
+
+.rnr-f-links a, .f-contact-item {
+    color: var(--f-text);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.rnr-f-links li {
-  margin-bottom: 12px;
-}
+.rnr-f-links a:hover { color: #fff; transform: translateX(5px); }
 
-.rnr-f-links a {
-  color: var(--f-text);
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.rnr-f-links a:hover {
-  color: var(--f-accent);
-}
-
-/* --- BOTTOM SECTION --- */
+/* BOTTOM SECTION */
 .rnr-footer-bottom {
-  border-top: 1px solid var(--f-border);
-  padding-top: 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
+    padding-top: 40px;
+    border-top: 1px solid var(--f-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #475569;
 }
 
-.rnr-bottom-left {
-  display: flex;
-  align-items: center;
-  gap: 30px;
+.rnr-bottom-right { display: flex; gap: 30px; align-items: center; }
+.rnr-bottom-link { color: inherit; text-decoration: none; font-weight: 700; font-size: 0.9rem; }
+.rnr-bottom-link:hover { color: #fff; }
+
+.rnr-social-stack { display: flex; gap: 15px; }
+.rnr-social-circle {
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; transition: 0.3s;
 }
 
-.rnr-f-logo {
-  font-size: 1.4rem;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -1px;
-}
+.rnr-social-circle:hover { background: var(--f-accent); transform: translateY(-5px); }
 
-.rnr-f-copy {
-  color: #475569;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.rnr-bottom-right {
-  display: flex;
-  gap: 25px;
-  align-items: center;
-}
-
-.rnr-bottom-link {
-  color: #475569;
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: color 0.2s;
-}
-
-.rnr-bottom-link:hover {
-  color: var(--f-accent);
-}
-
-/* Language/Region Selector Style */
-.rnr-lang-selector {
-  color: var(--f-text);
-  font-size: 0.85rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-/* --- RESPONSIVE --- */
 @media (max-width: 1024px) {
-  .rnr-footer-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 600px) {
-  .rnr-footer-grid { grid-template-columns: 1fr; text-align: center; }
-  .rnr-footer-bottom { flex-direction: column; text-align: center; }
-  .rnr-bottom-left { flex-direction: column; gap: 10px; }
-  .rnr-bottom-right { flex-direction: column; gap: 15px; }
+    .rnr-footer-grid { grid-template-columns: repeat(2, 1fr); }
+    .rnr-footer-upper { flex-direction: column; }
+    .rnr-newsletter-box { max-width: 100%; width: 100%; }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Send, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { MapPin, Phone, Send, Clock, ShieldCheck, CheckCircle2, Sparkles, Globe } from 'lucide-react';
 import api from '../api/axiosConfig';
 import "../styles/Contact.css";
 
@@ -19,16 +19,11 @@ const Contact = () => {
     setStatus({ loading: true, type: "", msg: "" });
     
     try {
-      /**
-       * 🚀 DATA MAPPING:
-       * Your Backend Model uses 'fullName', 'tourName', and 'groupSize'.
-       * We map the form fields to these keys so the Backend accepts the request.
-       */
       const payload = {
-        fullName: formData.name,      // Maps 'name' to 'fullName'
-        tourName: formData.subject,   // Maps 'subject' to 'tourName'
-        groupSize: formData.message,  // Maps 'message' to 'groupSize'
-        email: formData.email         
+        fullName: formData.name,
+        tourName: formData.subject,
+        groupSize: formData.message,
+        email: formData.email 
       };
 
       const res = await api.post('/contact/inquiry', payload);
@@ -42,7 +37,7 @@ const Contact = () => {
       setStatus({ 
         loading: false, 
         type: "error", 
-        msg: err.response?.data?.message || "Failed to send. Please check your internet or server." 
+        msg: err.response?.data?.message || "Communication failed. Please check your connection." 
       });
     }
   };
@@ -53,52 +48,58 @@ const Contact = () => {
         
         <div className="contact-grid">
           
-          {/* 📍 LEFT SIDE: INFO CARDS */}
+          {/* 📍 LEFT SIDE: PREMIUM INFO */}
           <motion.div 
-            initial={{ opacity: 0, x: -30 }} 
+            initial={{ opacity: 0, x: -40 }} 
             animate={{ opacity: 1, x: 0 }} 
             className="contact-info-side"
           >
-            <span className="premium-badge">Contact Us</span>
-            <h1 className="contact-title">Visit our <span className="text-indigo">Thamel Hub</span></h1>
+            <span className="premium-badge">
+              <Sparkles size={14} style={{ marginRight: '8px' }}/> Global Support
+            </span>
+            <h1 className="contact-title">Connect with our <span className="text-indigo">Thamel Hub</span></h1>
             <p className="contact-desc">
-              Have questions about a bike or a tour? Our team at the Kathmandu headquarters is ready to assist you.
+              Whether you're looking to book a solo expedition or a corporate fleet, our concierge team is standing by to orchestrate your journey.
             </p>
             
             <div className="info-cards-stack">
               <div className="contact-trust-card">
-                <div className="icon-box"><MapPin /></div>
+                <div className="icon-box"><MapPin size={24} /></div>
                 <div className="card-text">
-                  <h4>Location</h4>
-                  <p>Jp Marg, Thamel, Kathmandu (Opp. Anatolia)</p>
+                  <h4>Headquarters</h4>
+                  <p>JP Marg, Thamel, Kathmandu, Nepal</p>
                 </div>
               </div>
 
               <div className="contact-trust-card">
-                <div className="icon-box"><Phone /></div>
+                <div className="icon-box"><Phone size={24} /></div>
                 <div className="card-text">
-                  <h4>Support Lines</h4>
+                  <h4>Concierge Lines</h4>
                   <p>+977 9843360610 / 01-4260211</p>
                 </div>
               </div>
 
               <div className="contact-trust-card">
-                <div className="icon-box"><Clock /></div>
+                <div className="icon-box"><Clock size={24} /></div>
                 <div className="card-text">
-                  <h4>Service Hours</h4>
-                  <p>Sun - Fri: 9:00 AM - 7:00 PM</p>
+                  <h4>Operational Hours</h4>
+                  <p>Sun - Fri: 09:00 — 19:00</p>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* ✉️ RIGHT SIDE: FORM */}
+          {/* ✉️ RIGHT SIDE: THE FORM */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
+            initial={{ opacity: 0, y: 30 }} 
             animate={{ opacity: 1, y: 0 }}
             className="contact-form-card"
           >
-            <h3>Send a Message</h3>
+            <div className="form-header-box">
+              <h3>Direct Inquiry</h3>
+              <p>Expect a response within 2 business hours.</p>
+            </div>
+
             <form onSubmit={handleSubmit} className="contact-actual-form">
               <div className="form-row-dual">
                 <div className="input-group">
@@ -116,28 +117,28 @@ const Contact = () => {
                     type="email" required 
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    placeholder="name@example.com" 
+                    placeholder="name@exclusive.com" 
                   />
                 </div>
               </div>
 
               <div className="input-group">
-                <label>Subject</label>
+                <label>Inquiry Subject</label>
                 <input 
                   type="text" required 
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  placeholder="How can we help?" 
+                  placeholder="How can we assist your expedition?" 
                 />
               </div>
 
               <div className="input-group">
-                <label>Message</label>
+                <label>Message / Requirements</label>
                 <textarea 
                   required 
                   value={formData.message}
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  placeholder="Describe your inquiry..."
+                  placeholder="Describe your inquiry in detail..."
                 ></textarea>
               </div>
 
@@ -148,47 +149,54 @@ const Contact = () => {
               )}
 
               <button type="submit" disabled={status.loading} className="btn-send-message">
-                {status.loading ? "Sending..." : "Send Message"} <Send size={18}/>
+                {status.loading ? "Processing..." : "Dispatch Inquiry"} <Send size={20}/>
               </button>
             </form>
+
             <div className="form-footer-security">
-              <ShieldCheck size={14} /> <span>Encrypted Communication</span>
+              <ShieldCheck size={16} /> <span>End-to-End Encrypted Data Protocol</span>
             </div>
           </motion.div>
         </div>
 
-        {/* 🗺️ MAP SECTION - FIXED REAL GOOGLE MAPS EMBED */}
-        <div className="map-wrapper" style={{ marginTop: '80px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+        {/* 🗺️ MAP SECTION */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="map-wrapper"
+        >
           <iframe 
             title="Ride N Roar Thamel Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.128711107572!2d85.3086!3d27.7133!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb190011000001%3A0x7d02e7a37277874c!2sThamel%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1712000000000!5m2!1sen!2snp"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.128743171124!2d85.3093226754673!3d27.713337476179477!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb18fcb1ce557d%3A0x5999fca36a666993!2sThamel%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1715000000000!5m2!1sen!2snp"
             width="100%" 
-            height="450" 
+            height="550" 
             style={{ border: 0 }} 
             allowFullScreen="" 
             loading="lazy" 
             referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
-        </div>
+        </motion.div>
       </div>
 
       {/* 🏆 SUCCESS MODAL */}
       <AnimatePresence>
         {showSuccess && (
-          <div className="modal-overlay-blur">
+          <div className="modal-overlay-blur" onClick={() => setShowSuccess(false)}>
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.8, opacity: 0 }}
               className="success-modal-card"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="success-icon-circle">
-                <CheckCircle2 size={40} color="#10b981" />
+                <CheckCircle2 size={50} color="#6366f1" />
               </div>
-              <h2>Inquiry Delivered</h2>
-              <p>We've received your message. Our team at <strong>Ride N Roar</strong> will contact you shortly.</p>
+              <h2>Transmission Successful</h2>
+              <p>Your inquiry has been logged into our secure servers. A concierge will reach out to <strong>{formData.email}</strong> shortly.</p>
               <button onClick={() => setShowSuccess(false)} className="btn-modal-close">
-                Done
+                Acknowledge
               </button>
             </motion.div>
           </div>

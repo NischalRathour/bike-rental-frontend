@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
 import { 
   CheckCircle, Calendar, MapPin, 
-  Clock, LayoutDashboard, Bike, Download, ShieldCheck, Printer, Smartphone, Users
+  Clock, LayoutDashboard, Bike, ShieldCheck, Printer, 
+  Sparkles, Hash, CreditCard, ChevronRight, ArrowLeft
 } from "lucide-react";
 import "../styles/BookingConfirmation.css";
 
@@ -21,18 +22,29 @@ const BookingConfirmation = () => {
 
   useEffect(() => {
     if (details) {
-      const duration = 3 * 1000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-      const randomInRange = (min, max) => Math.random() * (max - min) + min;
+      const end = Date.now() + 3 * 1000;
+      const colors = ["#4F46E5", "#065F46", "#818CF8"];
 
-      const interval = setInterval(function() {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) return clearInterval(interval);
-        const particleCount = 50 * (timeLeft / duration);
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-      }, 250);
+      (function frame() {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      }());
     }
   }, [details]);
 
@@ -48,74 +60,129 @@ const BookingConfirmation = () => {
   return (
     <div className="confirmation-page-root">
       <div className="conf-container-max">
-        <header className="conf-hero no-print">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="success-icon-wrapper">
-            <CheckCircle size={80} color="#10b981" />
+        
+        {/* 🏆 HEADER SECTION */}
+        <header className="conf-header no-print">
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="breadcrumb-premium"
+          >
+            <Sparkles size={14} /> <span>PREMIUM RESERVATION SECURED</span>
           </motion.div>
-          <h1>Ride <span className="text-indigo">Secured.</span></h1>
-          <p>Your {details.bookingType === 'Group' ? 'fleet is' : 'machine is'} prepped for Thamel Hub pickup.</p>
+          
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            Expedition <span className="text-gradient">Validated.</span>
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+            Your credentials have been authenticated. Your machine is being prepped to elite standards at our Thamel Hub.
+          </motion.p>
         </header>
 
-        <div className="premium-receipt-card printable-area">
-          <div className="print-header">
-             <div className="p-brand-section">
-                <h2>RIDE N ROAR Nepal</h2>
-                <p>Official Pickup Pass</p>
-             </div>
-             <div className="p-meta-section">
-                <div className="p-status-pill">PAID</div>
-                <p>Invoice #: {details.bookingId?.slice(-8).toUpperCase()}</p>
-             </div>
-          </div>
+        {/* 💳 THE ELITE PASS CARD */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          transition={{ duration: 0.8, ease: "circOut" }}
+          className="premium-pass-card printable-area"
+        >
+          {/* Decorative Pass Edge */}
+          <div className="ticket-cutout-top"></div>
+          <div className="ticket-cutout-bottom"></div>
 
-          <div className="receipt-details">
-            <div className="receipt-header-main">
-              <div className="unit-info">
-                <span className="label-tiny">BOOKING TYPE</span>
-                <h3>{details.bookingType === 'Group' ? 'Group Expedition' : 'Solo Ride'}</h3>
-                <span className="label-ref">Units: {details.bikeName}</span>
-              </div>
-              <div className="qr-container">
-                <QRCodeSVG value={qrData} size={90} level="H" />
-              </div>
+          <div className="pass-sidebar">
+            <div className="sidebar-top">
+              <div className="pass-type-badge">{details.bookingType} PASS</div>
+              <div className="vertical-id">REF: {details.bookingId?.slice(-6).toUpperCase()}</div>
             </div>
-
-            <div className="receipt-grid">
-              <div className="grid-item">
-                <Calendar size={20}/>
-                <div className="g-content">
-                  <label>Pickup Date</label>
-                  <strong>{new Date(details.startDate).toLocaleDateString()}</strong>
-                </div>
-              </div>
-              <div className="grid-item">
-                <Clock size={20}/>
-                <div className="g-content">
-                  <label>Return Date</label>
-                  <strong>{new Date(details.endDate).toLocaleDateString()}</strong>
-                </div>
-              </div>
+            
+            <div className="pass-bike-art">
+              <Bike size={180} strokeWidth={0.5} />
             </div>
-
-            <div className="receipt-footer-new">
-              <div className="total-box">
-                <span className="label-tiny">TOTAL PAID</span>
-                <div className="price-grand">Rs. {details.totalPrice?.toLocaleString()}</div>
+            
+            <div className="sidebar-bottom">
+              <ShieldCheck size={24} className="shield-icon" />
+              <div className="auth-text">
+                <strong>AUTHENTICATED</strong>
+                <span>BY RIDE N ROAR INTEL</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="conf-navigation-v2 no-print">
-          <Link to="/customer" className="action-btn-secondary">
-            <LayoutDashboard size={20}/>
-            <span>Dashboard</span>
+          <div className="receipt-content">
+            <div className="content-inner">
+              <div className="receipt-header">
+                 <div className="brand-box">
+                    <h2>RIDE N ROAR</h2>
+                    <p className="location-tagline"><MapPin size={12} /> KATHMANDU HQ • THAMEL</p>
+                 </div>
+                 <div className="qr-container">
+                    <QRCodeSVG value={qrData} size={90} level="H" includeMargin={false} className="qr-code" />
+                    <span className="qr-subtext">GATE ACCESS QR</span>
+                 </div>
+              </div>
+
+              <div className="meta-row">
+                 <div className="meta-pill">
+                    <Hash size={12} /> {details.bookingId}
+                 </div>
+                 <div className="meta-pill">
+                    <CreditCard size={12} /> STRIPE_ENCRYPTED
+                 </div>
+              </div>
+
+              <div className="main-specs-grid">
+                  <div className="spec-group">
+                    <label>Assigned Machine</label>
+                    <div className="spec-value-large">{details.bikeName}</div>
+                    <div className="machine-status"><div className="dot"></div> READY FOR DEPLOYMENT</div>
+                  </div>
+
+                  <div className="schedule-grid">
+                    <div className="schedule-item">
+                      <label>Deployment</label>
+                      <div className="date-val">{new Date(details.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      <div className="time-val">09:00 AM • HUB PICKUP</div>
+                    </div>
+                    <div className="schedule-divider">
+                      <ChevronRight size={20} />
+                    </div>
+                    <div className="schedule-item">
+                      <label>Extraction</label>
+                      <div className="date-val">{new Date(details.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      <div className="time-val">06:00 PM • HUB RETURN</div>
+                    </div>
+                  </div>
+              </div>
+
+              <div className="receipt-footer-premium">
+                 <div className="investment-box">
+                    <label>TOTAL INVESTMENT</label>
+                    <div className="price-display">
+                      <span className="currency">NPR</span>
+                      <span className="amount">{details.totalPrice?.toLocaleString()}</span>
+                    </div>
+                 </div>
+                 <div className="stamp-box">
+                    <div className="official-stamp">APPROVED</div>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 🛠️ NAVIGATION ACTIONS */}
+        <div className="conf-actions no-print">
+          <Link to="/customer" className="btn-secondary-premium">
+            <LayoutDashboard size={18} />
+            <span>Member Dashboard</span>
           </Link>
-          <button className="action-btn-primary" onClick={() => window.print()}>
-            <Printer size={20}/>
-            <span>Print Invoice</span>
+          <button onClick={() => window.print()} className="btn-primary-premium">
+            <Printer size={18} />
+            <span>Print Official Invoice</span>
           </button>
         </div>
+
       </div>
     </div>
   );
