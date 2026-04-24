@@ -11,6 +11,7 @@ import "../styles/Bikes.css";
 const Bikes = () => {
   const navigate = useNavigate();
   
+  // ✅ Initializing as empty arrays ensures .map() and .some() don't crash
   const [bikes, setBikes] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [myBookings, setMyBookings] = useState([]); 
@@ -25,15 +26,18 @@ const Bikes = () => {
       try {
         setLoading(true);
         const fleetRes = await api.get('/bikes');
-        const fetchedBikes = fleetRes.data.bikes || fleetRes.data;
+        // Handle different API response structures
+        const fetchedBikes = fleetRes.data.bikes || fleetRes.data || [];
         setBikes(fetchedBikes);
 
         const bookingRes = await api.get('/bookings/my');
-        if (bookingRes.data.success) {
-          setMyBookings(bookingRes.data.bookings);
+        // Ensure we handle the case where bookings might be undefined
+        if (bookingRes.data && bookingRes.data.success) {
+          setMyBookings(bookingRes.data.bookings || []);
         }
       } catch (err) {
         console.error("Fleet sync intelligence failed.");
+        setBikes([]); // Fallback to empty fleet
       } finally {
         setTimeout(() => setLoading(false), 800);
       }
@@ -41,16 +45,20 @@ const Bikes = () => {
     fetchDashboardData();
   }, []);
 
+  /**
+   * ✅ FIXED: added optional chaining (?.) and fallbacks (|| [])
+   * This prevents the "undefined reading some" error.
+   */
   const isConfirmed = (bikeId) => {
-    return myBookings.some(b => 
-      b.bikes.some(bike => bike._id === bikeId) && b.status === 'Confirmed'
+    return (myBookings || []).some(b => 
+      (b.bikes || []).some(bike => (bike._id || bike) === bikeId) && b.status === 'Confirmed'
     );
   };
 
-  const filteredBikes = bikes.filter(b => 
-    (filter === "All" || b.type.toLowerCase() === filter.toLowerCase()) && 
-    (b.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     b.brand?.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredBikes = (bikes || []).filter(b => 
+    (filter === "All" || (b.type && b.type.toLowerCase() === filter.toLowerCase())) && 
+    ((b.name && b.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+     (b.brand && b.brand.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
   const handleSoloSelection = (bike) => {

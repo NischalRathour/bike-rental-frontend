@@ -4,7 +4,7 @@ import api from '../api/axiosConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bike, Calendar, Trash2, Check, ArrowRight, 
-  Users, Gauge, MapPin, CheckCircle, X, AlertCircle, Sparkles, Fuel
+  Users, Gauge, MapPin, CheckCircle, AlertCircle, Sparkles, Fuel, Loader2
 } from 'lucide-react';
 import "../styles/Booking.css";
 
@@ -51,34 +51,70 @@ const Booking = () => {
     }
   };
 
+  /**
+   * ✅ ATOMIC DAY CALCULATION
+   * Prevents 0-day errors by enforcing a 1-day minimum for same-day bookings.
+   */
   const calculateDays = () => {
     if (!dates.start || !dates.end) return 1;
-    const days = Math.ceil((new Date(dates.end) - new Date(dates.start)) / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : 1;
+    const start = new Date(dates.start);
+    const end = new Date(dates.end);
+    
+    // Normalize to midnight to avoid hour/minute calculation errors
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    
+    return diffDays > 0 ? diffDays : 1; 
+  };
+
+  /**
+   * ✅ ATOMIC TOTAL CALCULATION
+   * Sums all bikes in cart and multiplies by duration.
+   */
+  const calculateTotal = () => {
+    const days = calculateDays();
+    const bikesPrice = cart.reduce((total, bike) => total + (Number(bike.price) || 0), 0);
+    return days * bikesPrice;
   };
 
   const handleFinalSubmit = async () => {
-    if (cart.length === 0 || !dates.start || !dates.end) {
-      alert("Please select dates and at least one bike!");
+    const finalPrice = calculateTotal();
+
+    // 🛡️ FRONTEND SECURITY GATEKEEPER
+    if (cart.length === 0) {
+      alert("⚠️ Selection Required: Please choose a machine for your fleet.");
+      return;
+    }
+    if (!dates.start || !dates.end) {
+      alert("⚠️ Timeline Required: Please select your expedition dates.");
+      return;
+    }
+    if (finalPrice <= 0) {
+      alert("⚠️ System Alert: Total price calculation resulted in 0. Please re-adjust dates.");
       return;
     }
     
     setBookingLoading(true);
     try {
-      const totalPrice = calculateDays() * cart.reduce((s, b) => s + b.price, 0);
       const payload = {
         bikeIds: cart.map(b => b._id),
         startDate: dates.start,
         endDate: dates.end,
-        totalPrice: totalPrice
+        totalPrice: finalPrice, // ✅ Sending real value to prevent 400 error
+        bookingType: mode === 'solo' ? 'Solo' : 'Group'
       };
       
       const res = await api.post('/bookings', payload);
       if (res.data.success) {
-        navigate(`/payment/${res.data.booking._id}`);
+        // Carry the price in state to ensure PaymentPage has it immediately
+        navigate(`/payment/${res.data.booking._id}`, { state: { amount: finalPrice } });
       }
     } catch (err) {
-      alert("Booking Error: " + err.message);
+      const msg = err.response?.data?.message || "Internal Protocol Error";
+      alert("⚠️ Handshake Failed: " + msg);
     } finally {
       setBookingLoading(false);
     }
@@ -90,7 +126,7 @@ const Booking = () => {
         <div className="inner-ring"></div>
         <Sparkles className="loader-icon" />
       </div>
-      <p>Curating your experience...</p>
+      <p>Syncing with Kathmandu Hub Ledger...</p>
     </div>
   );
 
@@ -134,12 +170,12 @@ const Booking = () => {
                   <div className="solo-content">
                     <div className="content-header">
                       <h3>{cart[0].name}</h3>
-                      <p className="type-label">{cart[0].type} • Premium Grade</p>
+                      <p className="type-label">{cart[0].type} • Premium Engineering Grade</p>
                     </div>
                     <div className="specs-grid">
                       <div className="spec-item"><Gauge size={18} /> <span>{cart[0].cc}cc Displacement</span></div>
-                      <div className="spec-item"><Fuel size={18} /> <span>Standard Fuel</span></div>
-                      <div className="spec-item"><MapPin size={18} /> <span>Kathmandu Hub</span></div>
+                      <div className="spec-item"><Fuel size={18} /> <span>Fuel Optimized</span></div>
+                      <div className="spec-item"><MapPin size={18} /> <span>Hub: KTM-V1</span></div>
                     </div>
                     <div className="price-anchor">
                        <span className="p-val">Rs. {cart[0].price}</span>
@@ -153,7 +189,7 @@ const Booking = () => {
               ) : (
                 <div className="empty-state-card">
                    <AlertCircle size={48} />
-                   <p>Machine not found. Return to showroom.</p>
+                   <p>No machine selected. Return to showroom.</p>
                    <Link to="/bikes">View Fleet</Link>
                 </div>
               )}
@@ -161,13 +197,13 @@ const Booking = () => {
           ) : (
             <div className="group-grid-layout">
               <div className="group-header">
-                <h3>Select Your Squad's Machines</h3>
-                <p>Click machines to add or remove from your fleet.</p>
+                <h3>Select Squad Machines</h3>
+                <p>Add multiple bikes to your expedition ledger.</p>
               </div>
               <div className="fleet-masonry">
                 {bikes.map((bike) => (
                   <motion.div 
-                    whileHover={{ y: -8 }}
+                    whileHover={{ y: -5 }}
                     key={bike._id} 
                     className={`fleet-item-card ${cart.find(b => b._id === bike._id) ? 'active' : ''}`} 
                     onClick={() => toggleSelection(bike)}
@@ -189,11 +225,11 @@ const Booking = () => {
           )}
         </section>
 
-        {/* 📋 RIGHT SIDE: SIDEBAR */}
+        {/* 📋 RIGHT SIDE: SIDEBAR SUMMARY */}
         <aside className="summary-sidebar-v3">
           <div className="sidebar-content">
             <div className="summary-title">
-               <h3>Expedition Summary</h3>
+               <h3>Expedition Ledger</h3>
                <Sparkles size={18} className="spark-icon" />
             </div>
 
@@ -213,27 +249,29 @@ const Booking = () => {
                     </div>
                     {mode === 'group' && <button onClick={() => toggleSelection(b)} className="del-btn"><Trash2 size={14}/></button>}
                   </motion.div>
-                )) : <p className="ledger-empty">Your fleet is empty...</p>}
+                )) : <p className="ledger-empty">Fleet ledger is empty...</p>}
               </AnimatePresence>
             </div>
 
             <div className="calculation-zone">
               <div className="calc-row"><span>Journey Duration</span><span>{calculateDays()} Days</span></div>
-              <div className="calc-row"><span>Selection Type</span><span>{mode === 'solo' ? 'Solo' : 'Group'}</span></div>
+              <div className="calc-row"><span>Visa Status</span><span>Verified</span></div>
               
               <div className="total-reveal">
                 <label>Total Investment</label>
-                <h2>Rs. {(calculateDays() * cart.reduce((s, b) => s + b.price, 0)).toLocaleString()}</h2>
+                <h2>Rs. {calculateTotal().toLocaleString()}</h2>
               </div>
 
               <button className="btn-confirm-final" onClick={handleFinalSubmit} disabled={bookingLoading}>
                 {bookingLoading ? (
-                  <div className="btn-loader"></div>
+                  <div className="btn-loader-container">
+                    <Loader2 className="spinner-icon" /> <span>SYNCING LEDGER...</span>
+                  </div>
                 ) : (
                   <><span>Confirm Expedition</span> <ArrowRight size={18} /></>
                 )}
               </button>
-              <p className="secure-note">Secure checkout powered by Stripe</p>
+              <p className="secure-note">Dynamic Visa wallet deduction applied on next step.</p>
             </div>
           </div>
         </aside>

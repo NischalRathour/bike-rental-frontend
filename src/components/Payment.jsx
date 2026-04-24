@@ -1,56 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import paymentApi from '../api/paymentApi'; 
-import { ShieldCheck, Lock, Terminal, AlertCircle, CheckCircle2, Zap, Loader2 } from 'lucide-react';
+import { 
+  ShieldCheck, Terminal, CheckCircle2, Loader2, 
+  AlertCircle, Wallet, Fingerprint, Activity, Cpu 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import "../styles/Payment.css";
 
-function Payment({ amount, onSuccess, bookingId }) {
+function Payment({ bookingId, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
+  
   const [loading, setLoading] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [statusLog, setStatusLog] = useState([]);
+  const [processingStep, setProcessingStep] = useState(0);
 
   const addLog = (msg) => {
-    setStatusLog(prev => [`${new Date().toLocaleTimeString()}: ${msg}`, ...prev.slice(0, 2)]);
+    setStatusLog(prev => [`${new Date().toLocaleTimeString().split(' ')[0]} || ${msg}`, ...prev.slice(0, 3)]);
   };
+
+  useEffect(() => {
+    const initIntent = async () => {
+      if (!bookingId) {
+        addLog("CRITICAL_ERROR: NULL_BOOKING_ID");
+        return;
+      }
+
+      try {
+        addLog("ESTABLISHING ENCRYPTED TUNNEL...");
+        // ✅ Ensure bookingId is passed as an object
+        const { data } = await paymentApi.post('/payments/create-intent', { bookingId });
+        
+        setTimeout(() => {
+          setPaymentDetails(data);
+          addLog("MDB_ATLAS_SYNC: RECORDS_VALIDATED");
+          addLog(`BALANCE_VERIFIED: Rs. ${data.currentBalance.toLocaleString()}`);
+          
+          // 🚨 UI ALERT: If balance is negative, show error immediately
+          if (data.currentBalance < 0) {
+            setError("INSUFFICIENT_FUNDS: WALLET_OVERDRAWN");
+            addLog("ALERT: WALLET_OVERDRAWN");
+          }
+        }, 800);
+      } catch (err) { 
+        const errMsg = err.response?.data?.message || "GATEWAY_TIMEOUT";
+        setError(errMsg); 
+        addLog(`FATAL_ERROR: ${errMsg}`);
+      }
+    };
+    initIntent();
+  }, [bookingId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !paymentDetails) return;
+
+    // Check balance one last time before initiating
+    if (paymentDetails.currentBalance < paymentDetails.totalAmount) {
+      setError("INSUFFICIENT_FUNDS: RELOAD_VISA_WALLET");
+      return;
+    }
 
     setLoading(true);
     setError(null);
-    addLog('Initiating secure handshake...');
+    setProcessingStep(1);
+    addLog("PHASE_1: VISA_NETWORK_HANDSHAKE...");
 
     try {
-      const { data } = await paymentApi.post('/payments/create-intent', { bookingId });
-      addLog('RSA-4096 Encryption authenticated.');
-
       const cardElement = elements.getElement(CardElement);
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
-        payment_method: { 
+      
+      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+        paymentDetails.clientSecret, 
+        {
+          payment_method: { 
             card: cardElement,
-            billing_details: { name: "Elite Marketplace Client" }
+            billing_details: { name: "Ride N Roar Premium User" }
+          }
         }
-      });
+      );
 
-      if (stripeError) {
-        setError(stripeError.message);
-        addLog(`Authorization Failed: ${stripeError.code}`);
-      } else if (paymentIntent.status === 'succeeded') {
-        addLog('Funds verified & held.');
+      if (stripeError) throw new Error(stripeError.message);
+
+      if (paymentIntent.status === 'succeeded') {
+        setProcessingStep(2);
+        addLog("PHASE_2: FUNDS_FROZEN_IN_ESCROW...");
+        
+        const { data: confirmData } = await paymentApi.post('/payments/confirm', { 
+            bookingId, 
+            paymentId: paymentIntent.id 
+        });
+
+        setProcessingStep(3);
+        addLog(`PHASE_3: WALLET_SETTLEMENT_COMPLETE`);
+        addLog(`NEW_BALANCE: Rs. ${confirmData.newBalance.toLocaleString()}`);
+        
         setSuccess(true);
-        setTimeout(() => onSuccess(paymentIntent.id), 1500);
+        setTimeout(() => onSuccess(paymentIntent.id), 2000);
       }
     } catch (err) {
-      const errMsg = err.response?.data?.message || "Protocol Error. Try again.";
-      setError(errMsg);
-      addLog(`ERR_GATEWAY_TIMEOUT`);
-    } finally { 
-      setLoading(false); 
+      const msg = err.message || "TRANSACTION_REJECTED";
+      setError(msg);
+      addLog(`ERR_AUTH_REJECTED: ${msg}`);
+      setLoading(false);
+      setProcessingStep(0);
     }
   };
 
@@ -58,87 +114,81 @@ function Payment({ amount, onSuccess, bookingId }) {
     <div className="payment-card-container">
       <AnimatePresence mode="wait">
         {success ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            className="payment-success-state"
-          >
-            <div className="success-icon-wrapper">
-              <CheckCircle2 size={80} color="#10b981" />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="payment-success-state">
+            <div className="success-pulse-ring">
+              <CheckCircle2 size={100} strokeWidth={1.5} color="#10b981" />
             </div>
-            <h3>Transaction Authenticated</h3>
-            <p>Your machine is being provisioned in the ledger...</p>
+            <h2 className="success-title">TRANSACTION_VALIDATED</h2>
+            <p className="success-subtitle">Machine deployment authorized in Thamel Hub.</p>
           </motion.div>
         ) : (
-          <motion.form 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            onSubmit={handleSubmit} 
-            className="payment-form"
-          >
-            <div className="payment-header">
-              <div className="secure-badge">
-                <ShieldCheck size={18} />
-                <span>SECURE VAULT ACCESS</span>
+          <motion.form initial={{ opacity: 0 }} animate={{ opacity: 1 }} onSubmit={handleSubmit} className="payment-form">
+            <div className="premium-wallet-card">
+              <div className="glass-shimmer"></div>
+              <div className="wallet-header">
+                <div className="wallet-label"><Cpu size={14} className="icon-spin" /> <span>CORE_BALANCE_MONITOR</span></div>
+                <div className="visa-logo-watermark">VISA</div>
               </div>
-              <div className="card-networks">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="network-logo" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="network-logo mastercard" />
+              
+              <div className="wallet-main">
+                <div className="current-balance">
+                  <small>AVAILABLE_FUNDS</small>
+                  <h1 style={{ color: paymentDetails?.currentBalance < 0 ? '#ef4444' : 'inherit' }}>
+                    Rs. {paymentDetails?.currentBalance?.toLocaleString() || "0.00"}
+                  </h1>
+                </div>
+                <div className="wallet-chip"></div>
+              </div>
+
+              <div className="wallet-footer">
+                <div className="calc-row">
+                  <span>DEDUCTION</span>
+                  <span className="text-red">- Rs. {paymentDetails?.totalAmount?.toLocaleString() || "0"}</span>
+                </div>
+                <div className="calc-row result">
+                  <span>POST_TX_ESTIMATE</span>
+                  <span className="text-green">
+                    Rs. {paymentDetails ? (paymentDetails.currentBalance - paymentDetails.totalAmount).toLocaleString() : "0"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="card-input-section">
-              <label className="input-label">CARDHOLDER CREDENTIALS</label>
-              <div className={`stripe-element-wrapper ${loading ? 'is-loading' : ''} ${error ? 'has-error' : ''}`}>
-                <CardElement 
-                  options={{ 
-                    style: { 
-                      base: { 
-                        fontSize: '20px', 
-                        color: '#0f172a',
-                        fontFamily: '"Plus Jakarta Sans", sans-serif',
-                        fontWeight: '600',
-                        letterSpacing: '0.025em',
-                        '::placeholder': { color: '#94a3b8' } 
-                      } 
-                    } 
-                  }} 
-                />
+            <div className="secure-input-group">
+              <div className="label-row">
+                <label><Fingerprint size={14} /> SECURE_CREDENTIAL_ENTRY</label>
+                <div className="encryption-tag"><ShieldCheck size={12}/> ENCRYPTED</div>
+              </div>
+              <div className={`stripe-wrapper ${loading ? 'scanning' : ''} ${error ? 'invalid' : ''}`}>
+                <CardElement options={{ style: { base: { fontSize: '17px', color: '#f8fafc', fontFamily: '"JetBrains Mono", monospace', '::placeholder': { color: '#475569' } } } }} />
               </div>
             </div>
 
             {error && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="payment-error-msg">
-                <AlertCircle size={20} />
-                <span>{error}</span>
+              <motion.div initial={{ x: -10 }} animate={{ x: 0 }} className="gateway-error">
+                <AlertCircle size={18} />
+                <span>{error.toUpperCase()}</span>
               </motion.div>
             )}
 
-            <button className="pay-submit-btn" disabled={!stripe || loading}>
+            <button className={`premium-pay-btn ${loading ? 'active' : ''}`} disabled={!stripe || loading || !paymentDetails || paymentDetails.currentBalance < 0}>
               {loading ? (
-                <div className="btn-loader-content">
-                  <Loader2 size={24} className="spinner-quantum" />
-                  <span>AUTHORIZING TRANSACTION...</span>
+                <div className="btn-status-flow">
+                  <Loader2 size={20} className="spinner-quantum" />
+                  <span>{processingStep === 1 ? "AUTHORIZING..." : processingStep === 2 ? "SETTLING..." : "FINALIZING..."}</span>
                 </div>
               ) : (
-                <div className="btn-default-content">
-                   <span className="btn-main-text">Confirm & Pay</span>
-                   <span className="btn-price-tag">Rs. {amount?.toLocaleString()}</span>
+                <div className="btn-label-group">
+                   <div className="btn-text">INITIALIZE_SETTLEMENT</div>
+                   <div className="btn-amount">Rs. {paymentDetails?.totalAmount?.toLocaleString()}</div>
                 </div>
               )}
             </button>
 
-            <div className="payment-activity-log">
-              <div className="log-header">
-                <Terminal size={16}/> 
-                <span>ENCRYPTED_ACTIVITY_LOG</span>
-                <div className="terminal-status-light"></div>
-              </div>
-              <div className="log-content">
-                {statusLog.map((log, i) => (
-                  <div key={i} className="log-line">{`> ${log}`}</div>
-                ))}
-                {statusLog.length === 0 && <div className="log-line text-placeholder">{"> Awaiting card input..."}</div>}
+            <div className="terminal-telemetry">
+              <div className="terminal-header"><Activity size={14} /> <span>SYSTEM_TELEMETRY</span></div>
+              <div className="terminal-body">
+                {statusLog.map((log, i) => (<div key={i} className="log-entry">{`>> ${log}`}</div>))}
               </div>
             </div>
           </motion.form>
