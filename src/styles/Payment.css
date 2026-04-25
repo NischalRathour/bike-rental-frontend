@@ -1,195 +1,185 @@
 /* ============================================================
-    💎 PREMIUM MARKETPLACE PAYMENT COMPONENT
+    💎 RIDE N ROAR - ELITE FINTECH PAYMENT UI
    ============================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
 .payment-card-container {
-  background: #ffffff;
-  border-radius: 32px;
-  max-width: 600px;
-  margin: 0 auto;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.payment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
+/* --- 💳 THE PREMIUM VISA WALLET CARD --- */
+.premium-wallet-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    border-radius: 32px; 
+    padding: 35px;
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid #e2e8f0;
+    margin-bottom: 35px;
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08);
 }
 
-.secure-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f0fdf4;
-  color: #16a34a;
-  padding: 12px 24px;
-  border-radius: 100px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  border: 1px solid #dcfce7;
+.glass-shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent);
+    pointer-events: none;
 }
 
-/* --- LOGOS --- */
-.card-networks {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.wallet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 45px;
 }
 
-.network-logo {
-  height: 20px;
-  filter: grayscale(1);
-  opacity: 0.5;
+.wallet-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #e0e7ff; 
+    padding: 6px 14px;
+    border-radius: 100px;
+    color: #6366f1;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
-.network-logo.mastercard {
-  height: 32px;
+.visa-logo-watermark {
+    font-weight: 900;
+    font-style: italic;
+    font-size: 1.5rem;
+    color: #cbd5e1;
+    letter-spacing: -1px;
 }
 
-/* --- INPUTS --- */
-.card-input-section {
-  margin-bottom: 35px;
+.current-balance small {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.input-label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #94a3b8;
-  margin-bottom: 15px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+.current-balance h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 2.8rem;
+    color: #0f172a;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -2px;
 }
 
-.stripe-element-wrapper {
-  padding: 28px;
-  background: #f8fafc;
-  border: 2px solid #f1f5f9;
-  border-radius: 24px;
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+.wallet-chip {
+    width: 55px;
+    height: 40px;
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    border-radius: 10px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
 }
 
-.stripe-element-wrapper:focus-within {
-  border-color: #6366f1;
-  background: #ffffff;
-  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.12);
-  transform: translateY(-2px);
+.wallet-footer {
+    border-top: 1.5px solid #f1f5f9;
+    padding-top: 25px;
+    margin-top: 20px;
 }
 
-.stripe-element-wrapper.has-error {
-  border-color: #ef4444;
-  background: #fffafa;
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 600;
+    margin-bottom: 10px;
 }
 
-/* --- ACTION BUTTON --- */
-.pay-submit-btn {
-  width: 100%;
-  padding: 28px;
-  background: #020617; /* Deepest Midnight */
-  color: white;
-  border: none;
-  border-radius: 24px;
-  font-weight: 800;
-  font-size: 1.3rem; /* Bigger Text */
-  cursor: pointer;
-  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  margin-bottom: 20px;
+.calc-row.result {
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: #0f172a;
+    font-weight: 800;
+    margin-top: 15px;
 }
 
-.btn-default-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 5px;
+/* --- ⌨️ SECURE INPUT --- */
+.stripe-wrapper {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 20px;
+    border: 2px solid #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-price-tag {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 8px 18px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-family: 'JetBrains Mono', monospace;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.stripe-wrapper.scanning { 
+    border-color: #6366f1; 
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-.pay-submit-btn:hover:not(:disabled) {
-  background: #6366f1;
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 30px 60px rgba(99, 102, 241, 0.3);
+.label-row label {
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
-.pay-submit-btn:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
+/* --- 🚀 THE PREMIUM ACTION BUTTON --- */
+.premium-pay-btn {
+    width: 100%;
+    background: #0f172a; 
+    color: white;
+    padding: 22px;
+    border-radius: 22px;
+    border: none;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
+    margin-top: 15px;
+    margin-bottom: 30px;
 }
 
-/* --- TERMINAL LOG --- */
-.payment-activity-log {
-  margin-top: 40px;
-  background: #020617;
-  border-radius: 24px;
-  padding: 30px;
-  border: 1px solid #1e293b;
+.premium-pay-btn:hover:not(:disabled) {
+    background: #6366f1; 
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
 }
 
-.log-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.8rem;
-  color: #475569;
-  margin-bottom: 20px;
-  font-weight: 800;
-  letter-spacing: 2px;
+/* --- 📋 SYSTEM TELEMETRY (Clean Mode) --- */
+.terminal-telemetry {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    border: 1.5px solid #f1f5f9;
 }
 
-.terminal-status-light {
-  width: 8px;
-  height: 8px;
-  background: #10b981;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #10b981;
-  margin-left: auto;
+.terminal-header {
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    margin-bottom: 12px;
 }
 
-.log-content {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem; /* Bigger Terminal Text */
-  color: #10b981; 
-  line-height: 2;
-}
-
-.log-line { margin-bottom: 6px; }
-
-/* --- SUCCESS --- */
-.payment-success-state {
-  text-align: center;
-  padding: 80px 0;
-}
-
-.success-icon-wrapper {
-  background: #ecfdf5;
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 40px;
-}
-
-.payment-success-state h3 {
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: -2px;
-}
-
-/* --- ANIMATION --- */
-.spinner-quantum {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.log-entry {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #6366f1;
+    margin-bottom: 6px;
+    padding-left: 10px;
+    border-left: 2px solid #e0e7ff;
 }
