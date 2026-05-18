@@ -26,15 +26,10 @@ const Bikes = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // 📡 Sync with Fleet API
         const fleetRes = await api.get('/bikes');
         const fetchedBikes = fleetRes.data.bikes || fleetRes.data || [];
-        
-        // 🔍 DEBUG LOG: Check this in your browser console (F12)
-        console.log("Fleet intelligence received:", fetchedBikes);
         setBikes(fetchedBikes);
 
-        // 📡 Sync with My Bookings to show "Confirmed" ribbons
         const bookingRes = await api.get('/bookings/my');
         if (bookingRes.data && bookingRes.data.success) {
           setMyBookings(bookingRes.data.bookings || []);
@@ -43,34 +38,21 @@ const Bikes = () => {
         console.error("Fleet sync intelligence failed.");
         setBikes([]); 
       } finally {
-        // Smooth transition for premium feel
         setTimeout(() => setLoading(false), 800);
       }
     };
     fetchDashboardData();
   }, []);
 
-  /**
-   * ✅ CHECKER: Verifies if current user already has a confirmed booking for this bike
-   */
   const isConfirmed = (bikeId) => {
     return (myBookings || []).some(b => 
       (b.bikes || []).some(bike => (bike._id || bike) === bikeId) && b.status === 'Confirmed'
     );
   };
 
-  /**
-   * ✅ DYNAMIC OWNER FILTER (MARKETPLACE INTEGRITY)
-   * Ensures only bikes with a verified owner ID are visible to customers.
-   */
   const filteredBikes = (bikes || []).filter(b => {
-    // 🛡️ 1. Mandatory Owner Check (Critical for marketplace integrity)
     const hasOwner = b.owner !== null && b.owner !== undefined;
-    
-    // 🏷️ 2. Category Filter Logic
     const matchesFilter = filter === "All" || (b.type && b.type.toLowerCase() === filter.toLowerCase());
-    
-    // 🔍 3. Search Bar Intelligence
     const matchesSearch = (b.name && b.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
                           (b.brand && b.brand.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -78,6 +60,9 @@ const Bikes = () => {
   });
 
   const handleSoloSelection = (bike) => {
+    // 🛡️ Double-check availability before selection
+    if (bike.available === false || bike.status === 'Rented') return;
+    
     setSelectedBike(bike);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -101,7 +86,6 @@ const Bikes = () => {
 
   return (
     <div className="bikes-root">
-      {/* 🏔️ MEGA HERO SECTION */}
       <section className="bikes-hero">
         <div className="hero-overlay-glow"></div>
         <div className="bikes-container">
@@ -114,15 +98,12 @@ const Bikes = () => {
               <span className="text-highlight">{selectedBike ? "Selection" : "Showroom"}</span> 
             </h1>
             <p className="hero-description">
-              {selectedBike 
-                ? `Preparing the ${selectedBike.name} for dispatch. Define your expedition timeline.` 
-                : "Explore our collection of premium machines, exclusively verified and managed by registered owners."}
+              Explore our collection of premium machines, exclusively verified and managed by registered owners.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* ✅ QUICK-BOOK SYSTEM OVERLAY */}
       <AnimatePresence>
         {selectedBike && (
           <motion.section 
@@ -159,7 +140,6 @@ const Bikes = () => {
         )}
       </AnimatePresence>
 
-      {/* 🧭 PREMIUM NAVIGATION BAR */}
       {!selectedBike && (
         <section className="filter-navbar">
           <div className="bikes-container flex-header">
@@ -176,7 +156,6 @@ const Bikes = () => {
         </section>
       )}
 
-      {/* 🏍️ DYNAMIC SHOWROOM GRID */}
       <main className="bikes-container grid-padding">
         <div className="showroom-grid">
           <AnimatePresence mode="popLayout">
@@ -185,9 +164,7 @@ const Bikes = () => {
                 <motion.div 
                     layout 
                     key={bike._id} 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className={`bike-card ${selectedBike?._id === bike._id ? "active-focus" : ""}`}
+                    className={`bike-card ${selectedBike?._id === bike._id ? "active-focus" : ""} ${(bike.available === false || bike.status === 'Rented') ? "bike-rented" : ""}`}
                     style={{ opacity: selectedBike && selectedBike._id !== bike._id ? 0.3 : 1 }}
                 >
                   <div className="bike-image-box">
@@ -198,6 +175,13 @@ const Bikes = () => {
                     {isConfirmed(bike._id) && (
                       <div className="booked-ribbon">
                         <CheckCircle size={16} /> Confirmed
+                      </div>
+                    )}
+
+                    {/* 🔒 RENTED OVERLAY */}
+                    {(bike.available === false || bike.status === 'Rented') && (
+                      <div className="rented-overlay">
+                        <span>OUT ON EXPEDITION</span>
                       </div>
                     )}
                   </div>
@@ -218,10 +202,21 @@ const Bikes = () => {
                       <Link to={`/bikes/${bike._id}`} className="btn-secondary-full">Technical Specs</Link>
                       
                       <div className="dual-action-row">
-                        <button onClick={() => handleSoloSelection(bike)} className="btn-solo-action">
-                          Reserve Solo
+                        {/* ✅ UPDATED DYNAMIC BUTTON */}
+                        <button 
+                          onClick={() => handleSoloSelection(bike)} 
+                          className="btn-solo-action"
+                          disabled={bike.available === false || bike.status === 'Rented'}
+                        >
+                          {(bike.available === false || bike.status === 'Rented') ? "Currently Rented" : "Reserve Solo"}
                         </button>
-                        <button onClick={() => navigate(`/book/${bike._id}?mode=group`)} className="btn-group-action" title="Group Booking">
+                        
+                        <button 
+                          onClick={() => navigate(`/book/${bike._id}?mode=group`)} 
+                          className="btn-group-action" 
+                          title="Group Booking"
+                          disabled={bike.available === false || bike.status === 'Rented'}
+                        >
                           <Users size={24}/>
                         </button>
                       </div>
@@ -230,21 +225,11 @@ const Bikes = () => {
                 </motion.div>
               ))
             ) : (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                className="luxury-empty-state"
-              >
-                <div className="empty-icon-circle">
-                  <AlertCircle size={80} strokeWidth={1} />
-                </div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="luxury-empty-state">
+                <AlertCircle size={80} strokeWidth={1} />
                 <h3>Verified Inventory Depleted</h3>
-                <p>
-                  Found <b>{bikes.length}</b> bikes in database, but 0 match the <b>Verified Owner</b> filter for <b>{filter}</b>.
-                </p>
-                <button onClick={() => {setFilter("All"); setSearchTerm("");}} className="btn-reset-filter">
-                  Reset Fleet Filters
-                </button>
+                <p>Currently, no machines managed by registered owners match <b>{filter}</b>.</p>
+                <button onClick={() => {setFilter("All"); setSearchTerm("");}} className="btn-reset-filter">Reset Fleet Filters</button>
               </motion.div>
             )}
           </AnimatePresence>
