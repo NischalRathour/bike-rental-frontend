@@ -1,20 +1,21 @@
 import axios from "axios";
 
 /**
- * 🌐 BACKEND CONNECTIVITY
- * Loads the URL from .env or defaults to local development port.
+ * 🌐 LOCAL BACKEND CONNECTIVITY
+ * Forces the application to route requests directly to your local machine on port 5000.
+ * This completely stops your frontend from trying to communicate with Render.
  */
-const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL = "http://localhost:5000/api";
 
 const api = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
 /**
  * ✅ UNIFIED REQUEST INTERCEPTOR
- * Attaches the 'Ride N Roar' token to every outgoing request.
+ * Attaches the secure 'Ride N Roar' token to every outgoing request.
  */
 api.interceptors.request.use(
   (config) => {
@@ -42,7 +43,6 @@ api.interceptors.response.use(
 
     if (status === 401) {
       console.warn("🔐 Session Expired or Unauthorized.");
-      // Note: AuthContext handles the redirect logic based on this 401
     }
     
     if (status === 403) {

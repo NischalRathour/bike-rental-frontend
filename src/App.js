@@ -31,7 +31,7 @@ import OtpVerification from "./pages/OtpVerification";
 import ForgotPassword from "./pages/ForgotPassword"; 
 import PaymentPage from "./pages/PaymentPage";
 
-// ✅ UPDATED: Importing your Premium Profile component
+// Premium Profile component
 import Profile from "./pages/Profile"; 
 
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -122,7 +122,7 @@ const AppContent = () => {
             <Route path="/customer" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><CustomerDashboard /></ProtectedRoute>} />
             <Route path="/owner-dashboard" element={<ProtectedRoute allowedRoles={['owner']}><OwnerDashboard /></ProtectedRoute>} />
 
-            {/* ✅ UPDATED: Using the Premium Profile Component for the /account route */}
+            {/* Account Route using Profile Component */}
             <Route path="/account" element={<ProtectedRoute allowedRoles={['customer', 'admin', 'owner']}><Profile /></ProtectedRoute>} />
             
             <Route path="/my-bookings" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><MyBookings /></ProtectedRoute>} />

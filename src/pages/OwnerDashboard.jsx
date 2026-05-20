@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axiosConfig';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Plus, Edit, Trash2, X, Save, Wallet, Activity, 
-  UploadCloud, ShieldCheck, Zap, Loader2, LayoutGrid, CheckCircle2 
+  UploadCloud, Zap, Loader2, LayoutGrid, CheckCircle2, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import "../styles/OwnerDashboard.css";
 
@@ -14,6 +13,7 @@ const OwnerDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showRegSuccess, setShowRegSuccess] = useState(false); 
   const [editMode, setEditMode] = useState(false);
+  const [togglingId, setTogglingId] = useState(null); // Local loader state for individual row toggles
   
   const [formData, setFormData] = useState({
     _id: '', name: '', brand: '', price: '', type: 'Commuter', cc: '150cc', images: [''], available: true, description: ''
@@ -66,7 +66,6 @@ const OwnerDashboard = () => {
       setShowRegSuccess(true);
       fetchOwnerStats();
     } catch (err) {
-      // Detailed error capture
       alert(err.response?.data?.message || "Failed to save bike. Check console.");
     }
   };
@@ -77,6 +76,35 @@ const OwnerDashboard = () => {
         await api.delete(`/owner/bike/${id}`);
         fetchOwnerStats();
       } catch (err) { alert("Delete failed."); }
+    }
+  };
+
+  /** 🔄 MANUAL OVERRIDE TELEMETRY LOOP
+   * Directly switches machine status between Ready and Rented via patch actions
+   */
+  const handleToggleAvailability = async (bikeId) => {
+    try {
+      setTogglingId(bikeId);
+      const res = await api.patch(`/owner/bike/${bikeId}/toggle-availability`);
+      if (res.data.success) {
+        // Optimistically update local component list state mapping without flashing main loader screens
+        setData(prev => ({
+          ...prev,
+          myBikes: prev.myBikes.map(bike => 
+            bike._id === bikeId 
+              ? { ...bike, available: res.data.available, status: res.data.status } 
+              : bike
+          ),
+          stats: {
+            ...prev.stats,
+            availableUnits: res.data.available ? prev.stats.availableUnits + 1 : prev.stats.availableUnits - 1
+          }
+        }));
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to manually override unit telemetry.");
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -115,7 +143,36 @@ const OwnerDashboard = () => {
                     <h4>{bike.name} <small>({bike.brand})</small></h4>
                     <p>{bike._id} • {bike.cc} • {bike.type}</p>
                   </div>
-                  <span className={bike.available ? 's-badge-on' : 's-badge-off'}>{bike.available ? 'Ready' : 'Rented'}</span>
+                  
+                  {/* 🔄 INTERACTIVE TOGGLE ZONE BUTTON */}
+                  <div className="toggle-status-action" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      onClick={() => handleToggleAvailability(bike._id)}
+                      disabled={togglingId === bike._id}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: togglingId === bike._id ? 'not-allowed' : 'pointer',
+                        color: bike.available ? '#10b981' : '#ef4444',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '4px'
+                      }}
+                      title={bike.available ? "Force Status to Rented" : "Release Status to Ready"}
+                    >
+                      {togglingId === bike._id ? (
+                        <Loader2 className="animate-spin" size={20} />
+                      ) : bike.available ? (
+                        <ToggleRight size={28} />
+                      ) : (
+                        <ToggleLeft size={28} />
+                      )}
+                    </button>
+                    <span className={bike.available ? 's-badge-on' : 's-badge-off'}>
+                      {bike.available ? 'Ready' : 'Rented'}
+                    </span>
+                  </div>
+
                   <div className="item-btns">
                     <button onClick={() => openModal(bike)} className="btn-edit"><Edit size={16}/></button>
                     <button onClick={() => deleteBike(bike._id)} className="btn-trash"><Trash2 size={16}/></button>
