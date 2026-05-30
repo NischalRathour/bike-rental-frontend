@@ -1,5 +1,5 @@
 /* ============================================================
-   🚀 RIDE N ROAR - ELITE MARKETPLACE LOGIN UI
+    🚀 RIDE N ROAR - ELITE MARKETPLACE LOGIN UI
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -243,7 +243,9 @@
   text-decoration: underline;
 }
 
-/* --- 📱 MOBILE RESPONSIVE --- */
+/* ============================================================
+   📱 NEW PREMIUM MOBILE RESPONSIVE OVERRIDES (UPDATED)
+   ============================================================ */
 @media (max-width: 1024px) {
   .auth-visual-side {
     display: none;
@@ -257,5 +259,47 @@
     padding: 40px 30px;
     border-radius: 32px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+  }
+}
+
+/* ⚡ HIGH-DENSITY SMARTPHONE OPTIMIZATIONS (Screens under 480px) */
+@media (max-width: 480px) {
+  .auth-form-side {
+    padding: 16px; /* Bring box boundaries out to meet view frame limits */
+  }
+
+  .form-container-managed {
+    padding: 32px 20px; /* Scale down internal padding bounds */
+    border-radius: 24px;
+  }
+
+  .form-container-managed h1 {
+    font-size: 2.2rem; /* Shrunk title size to prevent line clipping on thin screens */
+    margin-bottom: 28px;
+    letter-spacing: -1px;
+  }
+
+  .managed-form {
+    gap: 16px; /* Bring compression to input field matrices */
+  }
+
+  .input-with-icon input {
+    padding: 16px 16px 16px 48px; /* Slightly more compact layout feedback sizes */
+    font-size: 0.95rem;
+  }
+
+  .i-icon {
+    left: 16px; /* Move internal vectors to scale with field lines */
+  }
+
+  .btn-auth-primary {
+    height: 56px; /* Bring down finger tap bounding metrics for clean layout symmetry */
+    font-size: 1rem;
+    border-radius: 14px;
+  }
+
+  .auth-footer-modern {
+    margin-top: 28px;
+    font-size: 0.85rem;
   }
 }

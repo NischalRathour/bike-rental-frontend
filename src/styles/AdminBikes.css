@@ -119,3 +119,161 @@
 .admin-fleet-loader { height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .pulse-circle { width: 40px; height: 40px; background: var(--admin-blue); border-radius: 50%; animation: pulse-loader 1.5s infinite; margin-bottom: 20px; }
 @keyframes pulse-loader { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
+/* ============================================================
+   📱 NEW MOBILE RESPONSIVE OVERRIDES (APPEND TO BOTTOM)
+   ============================================================ */
+
+/* 💻 TABLET DETECTOR INTERFACE (Screens under 992px) */
+@media (max-width: 992px) {
+  .fleet-control-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .header-actions-pro {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .search-glass-pro {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+/* 📱 SMARTPHONE INTERFACE FLIP (Screens under 768px) */
+@media (max-width: 768px) {
+  .admin-bikes-portal {
+    padding: 20px 0;
+  }
+
+  .title-stack h1 {
+    font-size: 1.8rem;
+  }
+
+  .header-actions-pro {
+    flex-direction: column-reverse;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .search-glass-pro {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .btn-add-unit {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+
+  /* 🛠️ FLIP TABLE TAGS TO CARDS FOR HIGH-DENSITY MOBILES */
+  .inventory-table-wrapper {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .inventory-pro-table, 
+  .inventory-pro-table thead, 
+  .inventory-pro-table tbody, 
+  .inventory-pro-table th, 
+  .inventory-pro-table td, 
+  .inventory-pro-table tr { 
+    display: block; 
+    width: 100%;
+  }
+
+  /* Safely displace the table headers without breaking accessibility layers */
+  .inventory-pro-table thead tr { 
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  /* Group each row into a distinct standalone container element */
+  .inventory-pro-table tr {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    margin-bottom: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    box-sizing: border-box;
+  }
+
+  /* Structure individual entries to behave as distributed key-value streams */
+  .inventory-pro-table td {
+    text-align: right;
+    padding: 12px 0;
+    border-bottom: 1px dashed #f1f5f9;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+
+  .inventory-pro-table td:last-child {
+    border-bottom: none;
+    padding-top: 14px;
+  }
+
+  /* Pull data label parameters dynamically from HTML properties */
+  .inventory-pro-table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+  }
+
+  /* Re-align profile metadata vectors symmetrically on smaller screen grids */
+  .inventory-pro-table td.unit-profile-cell {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    padding-top: 0;
+  }
+
+  .unit-profile-cell .unit-meta {
+    text-align: right;
+  }
+
+  .admin-action-flex {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* 📂 MODAL MANAGEMENT ADJUSTMENTS */
+  .fleet-mgmt-card {
+    padding: 24px;
+    border-radius: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .form-grid-pro {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
+
+  .input-group-pro input, .input-group-pro select {
+    box-sizing: border-box;
+  }
+
+  .btn-save-fleet-pro {
+    border: none;
+    box-sizing: border-box;
+  }
+}

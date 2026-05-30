@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, LogIn, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { GoogleLogin } from '@react-oauth/google'; // ⚡ Notice: GoogleOAuthProvider is completely removed from here
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google'; // ⚡ FIXED: Imported Provider to handle dynamic environments locally
 import "../styles/Login.css"; 
 
 const Login = () => {
@@ -13,6 +13,14 @@ const Login = () => {
   const [input, setInput] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ⚡ DYNAMIC ENVIRONMENT CHECK
+  // Dynamically switches keys so local and live environments execute concurrently without adjustments
+  const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  
+  const CURRENT_GOOGLE_CLIENT_ID = IS_LOCAL
+    ? "882551458559-vdp154cg3ussv7eh5h7t2oqln386fk0h.apps.googleusercontent.com" // 🟢 Key A (Localhost)
+    : "715694544162-5o84adq0s3lc0aqr90jhbpfgjdkq4gh1.apps.googleusercontent.com"; // 🌐 Key B (Vercel Production)
 
   useEffect(() => {
     if (user) {
@@ -83,7 +91,6 @@ const Login = () => {
       const res = await api.post('/users/google-login', { token: credential });
       
       if (res.data.success) {
-        // Sync with your AuthContext state tracker
         login(res.data.user, res.data.token);
         
         const role = res.data.user.role;
@@ -104,69 +111,71 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page-wrapper">
-      <div className="auth-split-layout">
-        <div className="auth-visual-side">
-          <div className="auth-overlay"></div>
-          <div className="auth-welcome-text">
-            <h2>Welcome Back.</h2>
-            <p>Your journey continues here.</p>
+    /* ⚡ FIXED: Wrapped container with the context provider using our dynamic environmental ID hook */
+    <GoogleOAuthProvider clientId={CURRENT_GOOGLE_CLIENT_ID}>
+      <div className="auth-page-wrapper">
+        <div className="auth-split-layout">
+          <div className="auth-visual-side">
+            <div className="auth-overlay"></div>
+            <div className="auth-welcome-text">
+              <h2>Welcome Back.</h2>
+              <p>Your journey continues here.</p>
+            </div>
+          </div>
+
+          <div className="auth-form-side">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="form-container-managed">
+              <h1>Login</h1>
+              <form onSubmit={handleSubmit} className="managed-form">
+                <div className="m-input-group">
+                  <label>Email Address</label>
+                  <div className="input-with-icon">
+                    <Mail size={18} className="i-icon" />
+                    <input type="email" name="email" value={input.email} onChange={handleChange} required placeholder="email@example.com" />
+                  </div>
+                </div>
+
+                <div className="m-input-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label>Password</label>
+                    <Link to="/forgot-password" style={{ fontSize: '12px', color: '#6366f1', textDecoration: 'none' }}>Forgot Password?</Link>
+                  </div>
+                  <div className="input-with-icon">
+                    <Lock size={18} className="i-icon" />
+                    <input type="password" name="password" value={input.password} onChange={handleChange} required placeholder="••••••••" />
+                  </div>
+                </div>
+
+                {error && <div className="m-error-box">{error}</div>}
+
+                <button type="submit" className="btn-auth-primary" disabled={loading}>
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <>Login <LogIn size={18} /></>}
+                </button>
+              </form>
+
+              <div className="auth-divider">
+                <span>OR SIGN IN WITH</span>
+              </div>
+
+              <div className="google-oauth-row" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError("Google Sign-On Transaction Rejected")}
+                  theme="outline"
+                  size="large"
+                  shape="pill"
+                  width="350"
+                  text="signin_with"
+                  useOneTap
+                />
+              </div>
+
+              <p className="auth-footer-modern">New here? <Link to="/register">Create an account</Link></p>
+            </motion.div>
           </div>
         </div>
-
-        <div className="auth-form-side">
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="form-container-managed">
-            <h1>Login</h1>
-            <form onSubmit={handleSubmit} className="managed-form">
-              <div className="m-input-group">
-                <label>Email Address</label>
-                <div className="input-with-icon">
-                  <Mail size={18} className="i-icon" />
-                  <input type="email" name="email" value={input.email} onChange={handleChange} required placeholder="email@example.com" />
-                </div>
-              </div>
-
-              <div className="m-input-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label>Password</label>
-                  <Link to="/forgot-password" style={{ fontSize: '12px', color: '#6366f1', textDecoration: 'none' }}>Forgot Password?</Link>
-                </div>
-                <div className="input-with-icon">
-                  <Lock size={18} className="i-icon" />
-                  <input type="password" name="password" value={input.password} onChange={handleChange} required placeholder="••••••••" />
-                </div>
-              </div>
-
-              {error && <div className="m-error-box">{error}</div>}
-
-              <button type="submit" className="btn-auth-primary" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <>Login <LogIn size={18} /></>}
-              </button>
-            </form>
-
-            {/* 🧭 PREMIUM IDENTITY FEDERATION SECTION */}
-            <div className="auth-divider">
-              <span>OR SIGN IN WITH</span>
-            </div>
-
-            <div className="google-oauth-row" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError("Google Sign-On Transaction Rejected")}
-                theme="outline"
-                size="large"
-                shape="pill"
-                width="350"
-                text="signin_with"
-                useOneTap // ⚡ Bypasses unexpected background validation checks during hot reloads
-              />
-            </div>
-
-            <p className="auth-footer-modern">New here? <Link to="/register">Create an account</Link></p>
-          </motion.div>
-        </div>
       </div>
-    </div>
+    </GoogleOAuthProvider>
   );
 };
 

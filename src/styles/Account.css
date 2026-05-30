@@ -1,3 +1,6 @@
+/* ============================================================
+   🖥️ COMPACT GLOBAL LAYOUT EXTENSIONS
+   ============================================================ */
 .account-page-root {
   background: #f8fafc;
   min-height: 100vh;
@@ -61,7 +64,7 @@
 
 /* --- GRID & SIDEBAR --- */
 .account-data-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; }
-.account-nav-sidebar { background: white; border-radius: 35px; padding: 40px; border: 1px solid #e2e8f0; }
+.account-nav-sidebar { background: white; border-radius: 35px; padding: 40px; border: 1px solid #e2e8f0; height: max-content; }
 
 .avatar-hex-large {
   width: 70px; height: 70px; background: #6366f1; color: white; border-radius: 20px;
@@ -90,4 +93,109 @@
 .btn-go-admin {
   background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 12px;
   font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px;
+}
+
+/* ============================================================
+   📱 PREMIUM MOBILE RESPONSIVE SUBSYSTEM RE-ENGINEERING
+   ============================================================ */
+
+/* 💻 TABLET DETECTOR VECTOR (Screens under 1024px width) */
+@media (max-width: 1024px) {
+  .account-page-root {
+    padding: 100px 20px 40px; /* Bring back margins closer to frame padding bounds */
+  }
+
+  .wallet-hero-section {
+    grid-template-columns: 1fr; /* Force Visa Platinum and side widget into single file */
+    gap: 20px;
+  }
+
+  .account-data-grid {
+    grid-template-columns: 1fr; /* Transform Sidebar and Content into vertical row blocks */
+    gap: 24px;
+  }
+}
+
+/* 📱 PHONE DETECTOR VECTOR (Screens under 768px width) */
+@media (max-width: 768px) {
+  .account-nav-sidebar {
+    padding: 24px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Transform vertical menus into scrolling pill buttons on smaller touch views */
+  .account-nav-sidebar nav, 
+  .account-nav-sidebar div:has(.menu-btn) {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    gap: 8px;
+    padding: 5px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide messy standard engine native scroll scrolls */
+  }
+  
+  .account-nav-sidebar nav::-webkit-scrollbar {
+    display: none; /* Hide Chrome/Brave/Webkit scroll overlays */
+  }
+
+  .menu-btn {
+    width: max-content;
+    white-space: nowrap; /* Prevent word-wrap breaking item line dimensions */
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .menu-btn.logout-trigger {
+    margin-top: 0; /* Align logout horizontally along the sliding container list */
+  }
+
+  .account-details-main {
+    padding: 24px;
+    border-radius: 24px;
+  }
+
+  /* 💳 Scale down card metrics cleanly to prevent screen bounds blowout */
+  .visa-platinum-card {
+    height: 200px;
+    border-radius: 24px;
+  }
+
+  .card-glass-content {
+    padding: 24px;
+  }
+
+  .limit-value {
+    font-size: 1.6rem;
+  }
+
+  .brand-main {
+    font-size: 0.9rem;
+  }
+
+  .detail-entry {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .admin-privilege-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .btn-go-admin {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
 }

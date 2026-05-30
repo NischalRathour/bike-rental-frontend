@@ -1,11 +1,11 @@
 import axios from "axios";
 
 /**
- * 🌐 LOCAL BACKEND CONNECTIVITY
- * Forces the application to route requests directly to your local machine on port 5000.
- * This completely stops your frontend from trying to communicate with Render.
+ * 🌐 DYNAMIC ORCHESTRATION ENGINE
+ * Automatically detects whether the application is running in the cloud (Vercel)
+ * or on your local machine, and sets the API base link dynamically.
  */
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

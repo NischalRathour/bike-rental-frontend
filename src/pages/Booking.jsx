@@ -78,7 +78,6 @@ const Booking = () => {
     
     setBookingLoading(true);
     try {
-      // ✅ ATOMIC PAYLOAD: Correctly formatted for String ID Schema
       const payload = {
         bikeIds: cart.map(b => String(b._id)), 
         startDate: dates.start,
@@ -107,7 +106,8 @@ const Booking = () => {
   );
 
   return (
-    <div className="booking-v2-root">
+    /* 🛡️ FIXED OVERLAP: Added top padding to safely clear the fixed navbar height */
+    <div className="booking-v2-root" style={{ paddingTop: '100px' }}>
       <section className="booking-top-nav">
         <div className="nav-inner container-max">
           <div className="nav-title-group">

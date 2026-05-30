@@ -46,7 +46,8 @@ const MyBookings = () => {
   );
 
   return (
-    <div className="my-bookings-page">
+    /* 🛡️ FIXED OVERLAP: Added top padding to push cards below the viewport overlay and preserve footer grounding */
+    <div className="my-bookings-page" style={{ paddingTop: '100px', minHeight: '100vh' }}>
       <div className="container-managed">
         
         <header className="bookings-page-header">
